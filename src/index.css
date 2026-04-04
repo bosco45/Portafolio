@@ -1,37 +1,3 @@
-/* Reset completo para fullscreen */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body, #root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #000000;
-}
-
-body {
-  background: #000000;
-  font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
-}
-
-/* Eliminar cualquier barra de scroll */
-body {
-  overflow: hidden;
-}
-
-/* Asegurar que el canvas ocupe todo el espacio disponible */
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  outline: none;
-}
-
 /* Reset completo */
 * {
   margin: 0;
@@ -39,21 +5,24 @@ canvas {
   box-sizing: border-box;
 }
 
-/* Fullscreen */
+/* Fullscreen base */
 html, body, #root {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
   background: #000000;
 }
 
 body {
   background: #000000;
-  overflow: hidden;
+  font-family: 'Inter', 'Helvetica Neue', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Canvas styles */
 canvas {
   display: block;
   width: 100%;
@@ -61,7 +30,11 @@ canvas {
   outline: none;
 }
 
-/* Animación profesional para el texto ENTER */
+/* ============================================
+   ANIMACIONES PRINCIPALES
+   ============================================ */
+
+/* Animación de flotación para el texto ENTER */
 @keyframes fadeFloat {
   0% {
     transform: translateY(0px);
@@ -70,5 +43,304 @@ canvas {
   100% {
     transform: translateY(-8px);
     opacity: 0.8;
+  }
+}
+
+/* Animación de entrada desde abajo */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de entrada desde arriba */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de entrada con escala */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pulse de glow para el texto */
+@keyframes pulseGlow {
+  0% {
+    text-shadow: 0 0 0px rgba(0, 150, 255, 0);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(0, 150, 255, 0.8), 0 0 40px rgba(0, 150, 255, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 0px rgba(0, 150, 255, 0);
+  }
+}
+
+/* Animación de respiración para la home */
+@keyframes subtleBreathing {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Animación de rotación suave */
+@keyframes softRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animación de onda para cards */
+@keyframes cardWave {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* ============================================
+   CLASES DE UTILIDAD
+   ============================================ */
+
+/* Contenedor flexible */
+.flex {
+  display: flex;
+  gap: 16px;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Grid responsivo */
+.grid {
+  display: grid;
+  gap: 24px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 32px;
+}
+
+/* Animaciones aplicadas */
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-fadeInDown {
+  animation: fadeInDown 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-fadeInScale {
+  animation: fadeInScale 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 0.3s ease-out both;
+}
+
+/* ============================================
+   ESTILOS PARA CARDS Y COMPONENTES
+   ============================================ */
+
+/* Card base */
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 32px 24px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(192, 132, 252, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.card-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.card h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card p {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+/* ============================================
+   TIPOGRAFÍA
+   ============================================ */
+
+h1, h2, h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(48px, 8vw, 72px);
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: clamp(32px, 6vw, 48px);
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: clamp(20px, 4vw, 24px);
+}
+
+p {
+  line-height: 1.6;
+  color: #9ca3af;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADA
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(192, 132, 252, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(192, 132, 252, 0.8);
+}
+
+/* ============================================
+   SELECTION COLOR
+   ============================================ */
+
+::selection {
+  background: rgba(192, 132, 252, 0.3);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background: rgba(192, 132, 252, 0.3);
+  color: #ffffff;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .card {
+    padding: 24px 20px;
+  }
+  
+  .card-icon {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 20px 16px;
+  }
+  
+  .card h3 {
+    font-size: 18px;
+  }
+  
+  .card p {
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   PREFERS REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
