@@ -1,0 +1,74 @@
+/* Reset completo para fullscreen */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000000;
+}
+
+body {
+  background: #000000;
+  font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+
+/* Eliminar cualquier barra de scroll */
+body {
+  overflow: hidden;
+}
+
+/* Asegurar que el canvas ocupe todo el espacio disponible */
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+/* Reset completo */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fullscreen */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000000;
+}
+
+body {
+  background: #000000;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+/* Animación profesional para el texto ENTER */
+@keyframes fadeFloat {
+  0% {
+    transform: translateY(0px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-8px);
+    opacity: 0.8;
+  }
+}
