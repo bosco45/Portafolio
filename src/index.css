@@ -1,3 +1,6 @@
+/* Import Source Code Pro from Google Fonts (Variable version) */
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@200..900&display=swap');
+
 /* Reset completo */
 * {
   margin: 0;
@@ -12,12 +15,14 @@ html, body, #root {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background: #000000;
+  background: #0d1321;
 }
 
 body {
-  background: #000000;
-  font-family: 'Inter', 'Helvetica Neue', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #0d1321;
+  font-family: 'Source Code Pro', 'Source Code Variable', monospace;
+  font-weight: 350;
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -31,10 +36,54 @@ canvas {
 }
 
 /* ============================================
+   TYPOGRAPHY - Light, airy, technical
+   ============================================ */
+
+h1, h2, h3 {
+  font-weight: 350;
+  letter-spacing: 0.03em;
+}
+
+h1 {
+  font-size: clamp(48px, 8vw, 72px);
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: clamp(32px, 6vw, 48px);
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: clamp(20px, 4vw, 24px);
+}
+
+p {
+  font-weight: 300;
+  letter-spacing: 0.015em;
+  line-height: 1.55;
+  color: #f0ebd8;
+  opacity: 0.75;
+}
+
+/* Navigation text style */
+.nav-text {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  font-weight: 350;
+}
+
+/* Index label style */
+.index-label {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  font-weight: 350;
+}
+
+/* ============================================
    ANIMACIONES PRINCIPALES
    ============================================ */
 
-/* Animación de flotación para el texto ENTER */
 @keyframes fadeFloat {
   0% {
     transform: translateY(0px);
@@ -46,7 +95,6 @@ canvas {
   }
 }
 
-/* Animación de entrada desde abajo */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -58,7 +106,6 @@ canvas {
   }
 }
 
-/* Animación de entrada desde arriba */
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -70,7 +117,6 @@ canvas {
   }
 }
 
-/* Animación de entrada con escala */
 @keyframes fadeInScale {
   from {
     opacity: 0;
@@ -82,7 +128,6 @@ canvas {
   }
 }
 
-/* Pulse de glow para el texto */
 @keyframes pulseGlow {
   0% {
     text-shadow: 0 0 0px rgba(0, 150, 255, 0);
@@ -95,44 +140,10 @@ canvas {
   }
 }
 
-/* Animación de respiración para la home */
-@keyframes subtleBreathing {
-  0% {
-    opacity: 0.6;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Animación de rotación suave */
-@keyframes softRotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Animación de onda para cards */
-@keyframes cardWave {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
 /* ============================================
    CLASES DE UTILIDAD
    ============================================ */
 
-/* Contenedor flexible */
 .flex {
   display: flex;
   gap: 16px;
@@ -151,7 +162,6 @@ canvas {
   gap: 16px;
 }
 
-/* Grid responsivo */
 .grid {
   display: grid;
   gap: 24px;
@@ -163,7 +173,6 @@ canvas {
   gap: 32px;
 }
 
-/* Animaciones aplicadas */
 .animate-fadeInUp {
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
@@ -184,22 +193,21 @@ canvas {
    ESTILOS PARA CARDS Y COMPONENTES
    ============================================ */
 
-/* Card base */
 .card {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(240, 235, 216, 0.02);
   backdrop-filter: blur(10px);
   border-radius: 24px;
   padding: 32px 24px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(240, 235, 216, 0.05);
   transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
   cursor: pointer;
 }
 
 .card:hover {
   transform: translateY(-8px);
-  border-color: rgba(192, 132, 252, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(240, 235, 216, 0.15);
+  background: rgba(240, 235, 216, 0.04);
 }
 
 .card-icon {
@@ -210,51 +218,20 @@ canvas {
 
 .card h3 {
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 400;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #c084fc 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #f0ebd8;
+  opacity: 0.9;
 }
 
 .card p {
   font-size: 14px;
-  color: #9ca3af;
-  line-height: 1.5;
+  color: #f0ebd8;
+  opacity: 0.6;
 }
 
-/* ============================================
-   TIPOGRAFÍA
-   ============================================ */
-
-h1, h2, h3 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-h1 {
-  font-size: clamp(48px, 8vw, 72px);
-  line-height: 1.1;
-}
-
-h2 {
-  font-size: clamp(32px, 6vw, 48px);
-  line-height: 1.2;
-}
-
-h3 {
-  font-size: clamp(20px, 4vw, 24px);
-}
-
-p {
-  line-height: 1.6;
-  color: #9ca3af;
-}
-
-/* Gradient text utility */
 .gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #60a5fa 100%);
+  background: linear-gradient(135deg, #f0ebd8 0%, #c084fc 50%, #60a5fa 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -270,17 +247,17 @@ p {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(240, 235, 216, 0.05);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(192, 132, 252, 0.5);
+  background: rgba(240, 235, 216, 0.3);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(192, 132, 252, 0.8);
+  background: rgba(240, 235, 216, 0.5);
 }
 
 /* ============================================
@@ -288,13 +265,13 @@ p {
    ============================================ */
 
 ::selection {
-  background: rgba(192, 132, 252, 0.3);
-  color: #ffffff;
+  background: rgba(240, 235, 216, 0.2);
+  color: #f0ebd8;
 }
 
 ::-moz-selection {
-  background: rgba(192, 132, 252, 0.3);
-  color: #ffffff;
+  background: rgba(240, 235, 216, 0.2);
+  color: #f0ebd8;
 }
 
 /* ============================================

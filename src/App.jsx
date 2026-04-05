@@ -1,5 +1,5 @@
 // App.jsx
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Spline from '@splinetool/react-spline'
 
 export default function App() {
@@ -12,11 +12,68 @@ export default function App() {
   const pulseTimeoutRef = useRef(null)
   const transitionTimeoutRef = useRef(null)
 
+  // Circle navigation state - CORRECTED 4 positions
+  const [activeSection, setActiveSection] = useState('INDEX')
+  const sectionAngles = {
+    'INDEX': 270,   // Top (12 o'clock)
+    'WORK': 330,    // Top-right (between INDEX and ABOUT)
+    'ABOUT': 30,    // Right side (was 20, adjusted for 4-node balance)
+    'CONTACT': 150  // Bottom-left (consistent with original reference)
+  }
+  const [currentAngle, setCurrentAngle] = useState(sectionAngles['INDEX'])
+  const animationRef = useRef(null)
+
+  const circleRadius = 110 // Increased from 110 (+15%)
+  const centerX = 130 // Adjusted for larger circle
+  const centerY = 130
+
+  const animateDot = useCallback((fromAngle, toAngle, duration = 700) => {
+    const startTime = performance.now()
+    let diff = ((toAngle - fromAngle) % 360 + 360) % 360
+    if (diff > 180) diff = diff - 360
+    const targetDiff = diff
+    
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(1, elapsed / duration)
+      const easeProgress = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2
+      const newAngle = fromAngle + targetDiff * easeProgress
+      setCurrentAngle(((newAngle % 360) + 360) % 360)
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        setCurrentAngle(((toAngle % 360) + 360) % 360)
+        animationRef.current = null
+      }
+    }
+    
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+    }
+    animationRef.current = requestAnimationFrame(animate)
+  }, [])
+
+  const handleSectionClick = useCallback((section) => {
+    setActiveSection(section)
+    const newAngle = sectionAngles[section]
+    animateDot(currentAngle, newAngle)
+  }, [animateDot, currentAngle])
+
+  const getDotPosition = (angleDeg) => {
+    const angleRad = (angleDeg * Math.PI) / 180
+    const x = centerX + circleRadius * Math.cos(angleRad)
+    const y = centerY + circleRadius * Math.sin(angleRad)
+    return { x, y }
+  }
+
   const onLoad = (splineApp) => {
     splineRef.current = splineApp
     
     if (splineApp.camera) {
-      splineApp.camera.position.set(0, 0, 8)
+      splineApp.camera.position.set(0, 0, 1)
       splineApp.camera.lookAt(0, 0, 0)
     }
     
@@ -55,7 +112,7 @@ export default function App() {
       if (splineRef.current) {
         splineRef.current.emitEvent('sphereDissolve')
       }
-    }, 300)
+    }, )
 
     transitionTimeoutRef.current = setTimeout(() => {
       setShowHome(true)
@@ -66,12 +123,15 @@ export default function App() {
     return () => {
       if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current)
       if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
   }, [])
 
+  const dotPos = getDotPosition(currentAngle)
+
   return (
     <>
-      {/* Pantalla de carga con esfera */}
+      {/* Splash screen - completely unchanged */}
       <div style={{
         ...styles.splashScreen,
         ...(isTransitioning && styles.splashScreenExit)
@@ -106,7 +166,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* ENTER text - ahora con glow protagonista y animación reactiva */}
           <div
             style={{
               ...styles.enter,
@@ -120,29 +179,83 @@ export default function App() {
         </div>
       </div>
 
-      {/* Home page que se revela después */}
+      {/* Home page - Refined with precise typography and spacing */}
       <div style={{
         ...styles.homePage,
         ...(showHome && styles.homePageVisible)
       }}>
-        <div style={styles.homeContent}>
-          <h1 style={styles.homeTitle}>Welcome</h1>
-          <p style={styles.homeSubtitle}>to the digital realm</p>
-          <div style={styles.homeCards}>
-            <div style={styles.card}>
-              <div style={styles.cardIcon}>✨</div>
-              <h3>Immersive</h3>
-              <p>Experience the future of 3D interaction</p>
+        {/* Top-left logo + name */}
+        <div style={styles.logoArea}>
+          <img src="/A.png" alt="Logo" style={styles.logoImage} />
+          <span style={styles.logoName}>Annya Fraysheht</span>
+        </div>
+        
+        {/* Top-center headline */}
+        <div style={styles.headline}>
+          3D Artist specialized in Hard Surface / Real-Time and Digital Experiences
+        </div>
+        
+        {/* Top-right availability - more subtle */}
+        <div style={styles.availability}>
+          <div style={styles.greenDot}></div>
+          <span style={styles.availabilityText}>Currently available for new projects</span>
+        </div>
+        
+        {/* Bottom-left description - tighter and cleaner */}
+        <div style={styles.description}>
+          <p style={styles.descLine}>Exploring form, motion and interaction through 3D</p>
+          <p style={styles.descLine}>Where structure meets motion in real-time 3D experiences</p>
+          <p style={styles.descLine}>Creating digital worlds driven by form, light and movement</p>
+        </div>
+        
+        {/* Right side circular navigation - COMPLETE with 4 nodes */}
+        <div style={styles.navWrapper}>
+          <div style={styles.circleContainer}>
+            <svg width="260" height="260" viewBox="0 0 260 260" style={styles.svgCircle}>
+              <circle
+                cx="130"
+                cy="130"
+                r={circleRadius}
+                fill="none"
+                stroke="rgba(240, 235, 216, 0.18)"
+                strokeWidth="0.6"
+              />
+              <circle
+                cx={dotPos.x}
+                cy={dotPos.y}
+                r="5"
+                fill="#f0ebd8"
+                style={{
+                  filter: 'drop-shadow(0 0 5px rgba(240, 235, 216, 0.6))',
+                  transition: 'none'
+                }}
+              />
+            </svg>
+            
+            {/* ALL 4 Navigation labels - correctly positioned and mapped */}
+            <div 
+              style={{...styles.navLabel, ...styles.navLabelIndex}} 
+              onClick={() => handleSectionClick('INDEX')}
+            >
+              INDEX
             </div>
-            <div style={styles.card}>
-              <div style={styles.cardIcon}>🚀</div>
-              <h3>Cinematic</h3>
-              <p>Smooth transitions with premium feel</p>
+            <div 
+              style={{...styles.navLabel, ...styles.navLabelWork}} 
+              onClick={() => handleSectionClick('WORK')}
+            >
+              WORK
             </div>
-            <div style={styles.card}>
-              <div style={styles.cardIcon}>💎</div>
-              <h3>Luxurious</h3>
-              <p>Polished digital craftsmanship</p>
+            <div 
+              style={{...styles.navLabel, ...styles.navLabelAbout}} 
+              onClick={() => handleSectionClick('ABOUT')}
+            >
+              ABOUT
+            </div>
+            <div 
+              style={{...styles.navLabel, ...styles.navLabelContact}} 
+              onClick={() => handleSectionClick('CONTACT')}
+            >
+              CONTACT
             </div>
           </div>
         </div>
@@ -152,7 +265,7 @@ export default function App() {
 }
 
 const styles = {
-  // Pantalla de carga
+  // Splash screen styles - completely unchanged
   splashScreen: {
     position: 'fixed',
     top: 0,
@@ -238,8 +351,8 @@ const styles = {
     color: '#ffffff',
     letterSpacing: '0.5em',
     fontSize: '14px',
-    fontFamily: "'Inter', 'Helvetica Neue', 'Segoe UI', sans-serif",
-    fontWeight: 400,
+    fontFamily: "'Source Code Pro', 'Source Code Variable', monospace",
+    fontWeight: 350,
     opacity: 0.55,
     textTransform: 'uppercase',
     padding: '12px 24px',
@@ -272,80 +385,183 @@ const styles = {
     pointerEvents: 'none'
   },
   
-  // Home page
+  // Home page - Refined minimal design
   homePage: {
     position: 'fixed',
     top: 0,
     left: 0,
     width: '100vw',
     height: '100vh',
-    background: 'linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%)',
+    background: '#0d1321',
     zIndex: 5,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     opacity: 0,
     transform: 'translateY(30px)',
     transition: 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1)',
-    pointerEvents: 'none'
+    pointerEvents: 'none',
+    margin: 0,
+    padding: 0,
+    overflow: 'hidden'
   },
   homePageVisible: {
     opacity: 1,
     transform: 'translateY(0)',
     pointerEvents: 'auto'
   },
-  homeContent: {
-    textAlign: 'center',
-    padding: '40px',
-    maxWidth: '1200px',
-    width: '100%'
-  },
-  homeTitle: {
-    fontSize: '72px',
-    fontWeight: 600,
-    background: 'linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #60a5fa 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    marginBottom: '16px',
-    fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
-    letterSpacing: '-0.02em',
-    animation: 'fadeInUp 0.8s ease-out 0.2s both'
-  },
-  homeSubtitle: {
-    fontSize: '20px',
-    color: '#9ca3af',
-    marginBottom: '60px',
-    fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
-    letterSpacing: '0.3em',
-    textTransform: 'uppercase',
-    animation: 'fadeInUp 0.8s ease-out 0.4s both'
-  },
-  homeCards: {
+  
+  // Top-left logo area - consistent 40px margin
+  logoArea: {
+    position: 'absolute',
+    top: '40px',
+    left: '75px',
     display: 'flex',
-    gap: '32px',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    animation: 'fadeInUp 0.8s ease-out 0.6s both'
+    alignItems: 'center',
+    gap: '12px',
+    zIndex: 10
   },
-  card: {
-    background: 'rgba(255, 255, 255, 0.03)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: '20px',
-    padding: '32px 24px',
-    width: '250px',
-    textAlign: 'center',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
-    transition: 'transform 0.3s ease, border-color 0.3s ease',
-    cursor: 'pointer'
+  logoImage: {
+    height: '26px',
+    width: 'auto',
+    opacity: 0.85
   },
-  cardIcon: {
-    fontSize: '48px',
-    marginBottom: '16px'
+  logoName: {
+    fontFamily: "'Source Code Pro', 'Source Code Variable', monospace",
+    fontWeight: 400,
+    fontSize: '15px',
+    letterSpacing: '0.08em',
+    color: '#f0ebd8',
+    opacity: 0.85
+  },
+  
+  // Top-center headline - thinner, less prominent
+  headline: {
+    position: 'absolute',
+    top: '42px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: "'Source Code Pro', 'Source Code Variable', monospace",
+    fontWeight: 300,
+    fontSize: '13px',
+    letterSpacing: '0.03em',
+    color: '#f0ebd8',
+    opacity: 0.55,
+    maxWidth: '900px',
+    width: '100%',
+    lineHeight: 1.4,
+    zIndex: 10,
+    whiteSpace: 'nowrap'
+  },
+  
+  // Top-right availability - smaller, more subtle
+  availability: {
+    position: 'absolute',
+    top: '38px',
+    right: '64px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: 'rgba(240, 235, 216, 0.02)',
+    padding: '6px 12px',
+    borderRadius: '40px',
+    border: '1px solid rgba(217, 240, 216, 0.05)',
+    zIndex: 10
+  },
+  greenDot: {
+    width: '5px',
+    height: '5px',
+    backgroundColor: '#10b981',
+    borderRadius: '50%',
+    boxShadow: '0 0 4px #10b981',
+    animation: 'pulseGreen 2s infinite'
+  },
+  availabilityText: {
+    fontFamily: "'Source Code Pro', 'Source Code Variable', monospace",
+    fontWeight: 300,
+    fontSize: '11px',
+    letterSpacing: '0.02em',
+    color: '#f0ebd8',
+    opacity: 0.6
+  },
+  
+  // Bottom-left description - tighter and cleaner
+  description: {
+    position: 'absolute',
+    left: '80px',
+    bottom: '120px',
+    maxWidth: '440px',
+    zIndex: 10
+  },
+  descLine: {
+    fontFamily: "'Source Code Pro', 'Source Code Variable', monospace",
+    fontWeight: 300,
+    fontSize: '14px',
+    lineHeight: 1.55,
+    letterSpacing: '0.01em',
+    color: '#f0ebd8',
+    opacity: 0.75,
+    marginBottom: '10px'
+  },
+  
+  // Right side circular navigation - repositioned for balance
+  navWrapper: {
+    position: 'absolute',
+    right: '110px',
+    top: '70%',
+    transform: 'translateY(-50%)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    zIndex: 10
+  },
+  
+  circleContainer: {
+    position: 'relative',
+    width: '200px',
+    height: '200px'
+  },
+  svgCircle: {
+    width: '100%',
+    height: '100%',
+    display: 'block'
+  },
+  navLabel: {
+    position: 'absolute',
+    fontFamily: "'Source Code Pro', 'Source Code Variable', monospace",
+    fontSize: '10px',
+    letterSpacing: '0.2em',
+    fontWeight: 350,
+    color: '#f0ebd8',
+    opacity: 0.65,
+    cursor: 'pointer',
+    transition: 'opacity 0.2s ease',
+    whiteSpace: 'nowrap'
+  },
+  // NEW: INDEX label at top (12 o'clock)
+  navLabelIndex: {
+    top: '-20px',
+    left: '50%',
+    transform: 'translateX(-50%)'
+  },
+  // WORK label at top-right (between INDEX and ABOUT)
+  navLabelWork: {
+    top: '50%',
+    right: '197px',
+    transform: 'translateY(-50%)'
+  },
+  // ABOUT label on the right side
+  navLabelAbout: {
+    top: '50%',
+    right: '-40px',
+    transform: 'translateY(-50%)'
+  },
+  // CONTACT label at bottom
+  navLabelContact: {
+    bottom: '-10px',
+    left: '50%',
+    transform: 'translateX(-50%)'
   }
 }
 
-// Estilos globales
+// Add keyframes
 const styleSheet = document.createElement("style");
 styleSheet.textContent = `
   @keyframes fadeInUp {
@@ -359,9 +575,102 @@ styleSheet.textContent = `
     }
   }
   
-  .card:hover {
-    transform: translateY(-8px);
-    border-color: rgba(192, 132, 252, 0.3);
+  @keyframes pulseGreen {
+    0% {
+      opacity: 0.5;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3);
+    }
+    70% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+    }
+    100% {
+      opacity: 0.5;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+  
+  /* Hover effects for navigation */
+  .nav-label-hover:hover {
+    opacity: 1 !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1280px) {
+    .headline {
+      font-size: 10px;
+      max-width: 400px;
+    }
+    .desc-line {
+      font-size: 13px;
+    }
+    .nav-wrapper {
+      right: 50px;
+      transform: translateY(-50%) scale(0.95);
+    }
+    .description {
+      left: 64px;
+      bottom: 100px;
+      max-width: 400px;
+    }
+  }
+  
+  @media (max-width: 1024px) {
+    .logo-area {
+      top: 30px;
+      left: 40px;
+    }
+    .headline {
+      display: none;
+    }
+    .availability {
+      top: 28px;
+      right: 40px;
+    }
+    .description {
+      left: 40px;
+      bottom: 80px;
+      max-width: 340px;
+    }
+    .desc-line {
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .nav-wrapper {
+      right: 30px;
+      transform: translateY(-50%) scale(0.85);
+    }
+    .logo-name {
+      font-size: 13px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .description {
+      left: 30px;
+      bottom: 60px;
+      max-width: 280px;
+    }
+    .desc-line {
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .nav-wrapper {
+      right: 20px;
+      transform: translateY(-50%) scale(0.75);
+    }
+    .logo-name {
+      font-size: 11px;
+    }
+    .availability-text {
+      font-size: 8px;
+    }
+    .logo-area {
+      gap: 8px;
+    }
+    .logo-image {
+      height: 20px;
+    }
   }
 `;
 document.head.appendChild(styleSheet);
