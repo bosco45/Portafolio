@@ -8,6 +8,7 @@ export default function App() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [showHome, setShowHome] = useState(false)
+  const [showAboutImage, setShowAboutImage] = useState(false)
   const splineRef = useRef(null)
   const pulseTimeoutRef = useRef(null)
   const transitionTimeoutRef = useRef(null)
@@ -60,7 +61,19 @@ export default function App() {
     setActiveSection(section)
     const newAngle = sectionAngles[section]
     animateDot(currentAngle, newAngle)
+    
+    // Toggle ABOUT image: if clicking ABOUT and image is hidden, show it; if clicking ABOUT and image is visible, hide it
+    // If clicking any other section, hide the image
+    if (section === 'ABOUT') {
+      setShowAboutImage(prev => !prev)
+    } else {
+      setShowAboutImage(false)
+    }
   }, [animateDot, currentAngle])
+
+  const closeAboutImage = () => {
+    setShowAboutImage(false)
+  }
 
   const getDotPosition = (angleDeg) => {
     const angleRad = (angleDeg * Math.PI) / 180
@@ -236,27 +249,53 @@ export default function App() {
             <div 
               style={{...styles.navLabel, ...styles.navLabelIndex}} 
               onClick={() => handleSectionClick('INDEX')}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
             >
               INDEX
             </div>
             <div 
               style={{...styles.navLabel, ...styles.navLabelWork}} 
               onClick={() => handleSectionClick('WORK')}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
             >
               WORK
             </div>
             <div 
               style={{...styles.navLabel, ...styles.navLabelAbout}} 
               onClick={() => handleSectionClick('ABOUT')}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
             >
               ABOUT
             </div>
             <div 
               style={{...styles.navLabel, ...styles.navLabelContact}} 
               onClick={() => handleSectionClick('CONTACT')}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.65'}
             >
               CONTACT
             </div>
+          </div>
+        </div>
+
+        {/* ABOUT Image Overlay with Close Button */}
+        <div style={{
+          ...styles.aboutImageOverlay,
+          ...(showAboutImage ? styles.aboutImageVisible : styles.aboutImageHidden)
+        }}>
+          <div style={styles.aboutImageContainer}>
+            <button 
+              onClick={closeAboutImage}
+              style={styles.closeButton}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+            >
+              ✕
+            </button>
+            <img src="/About.png" alt="About" style={styles.aboutImage} />
           </div>
         </div>
       </div>
@@ -535,29 +574,80 @@ const styles = {
     transition: 'opacity 0.2s ease',
     whiteSpace: 'nowrap'
   },
-  // NEW: INDEX label at top (12 o'clock)
   navLabelIndex: {
     top: '-20px',
     left: '50%',
     transform: 'translateX(-50%)'
   },
-  // WORK label at top-right (between INDEX and ABOUT)
   navLabelWork: {
     top: '50%',
     right: '197px',
     transform: 'translateY(-50%)'
   },
-  // ABOUT label on the right side
   navLabelAbout: {
     top: '50%',
     right: '-40px',
     transform: 'translateY(-50%)'
   },
-  // CONTACT label at bottom
   navLabelContact: {
     bottom: '-10px',
     left: '50%',
     transform: 'translateX(-50%)'
+  },
+
+  // ABOUT Image Overlay Styles
+  aboutImageOverlay: {
+    position: 'fixed',
+    top: '50%',
+    right: '20%',
+    transform: 'translateY(-50%)',
+    zIndex: 20,
+    transition: 'opacity 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1)'
+  },
+  aboutImageVisible: {
+    opacity: 1,
+    transform: 'translateY(-50%) translateY(0)'
+  },
+  aboutImageHidden: {
+    opacity: 0,
+    transform: 'translateY(-50%) translateY(20px)',
+    pointerEvents: 'none'
+  },
+  aboutImageContainer: {
+    position: 'relative',
+    display: 'inline-block'
+  },
+  // X (Exit)
+  closeButton: {
+    position: 'absolute',
+    top: '65px',
+    right: '50px',
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    background: 'rgba(13, 19, 33, 0.9)',
+    border: '1px solid rgba(240, 235, 216, 0.3)',
+    color: '#f0ebd8',
+    fontSize: '14px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.6,
+    transition: 'opacity 0.2s ease, transform 0.2s ease',
+    backdropFilter: 'blur(4px)',
+    fontFamily: 'monospace',
+    zIndex: 21
+  },
+  //image ABOUT
+  aboutImage: {
+    maxWidth: '300px',
+    width: '90%',
+    height: 'auto',
+    borderRadius: '15px',
+    boxShadow: '0 30px 35px -10px rgba(0,0,0,0.3)',
+    border: 'none',
+    outline: 'none'
   }
 }
 
