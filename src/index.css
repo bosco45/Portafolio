@@ -275,6 +275,289 @@ p {
 }
 
 /* ============================================
+   MEJORAS PARA VISTA DE PROYECTO EXPANDIDA (PREMIUM)
+   ============================================ */
+
+/* Animación de entrada cinemática para imágenes */
+@keyframes cinematicReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+    filter: blur(8px);
+  }
+  40% {
+    opacity: 0.6;
+    transform: scale(0.98) translateY(8px);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Glass surface premium para contenedores de imagen */
+.glass-image-container {
+  background: linear-gradient(135deg, rgba(20, 30, 45, 0.4) 0%, rgba(116, 140, 171, 0.08) 100%);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(240, 235, 216, 0.08);
+  box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.2, 0.95, 0.4, 1.05);
+}
+
+.glass-image-container:hover {
+  border-color: rgba(192, 132, 252, 0.25);
+  box-shadow: 0 25px 45px -14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+
+/* Efecto de bloom sutil en hover para imágenes */
+.image-bloom-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-bloom-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(116, 140, 171, 0.12), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.image-bloom-effect:hover::after {
+  opacity: 1;
+}
+
+/* Hero image - más grande y dominante */
+.hero-image {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  transform-origin: center;
+  transition: all 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05);
+}
+
+.hero-image:hover {
+  transform: scale(1.01);
+  box-shadow: 0 30px 50px -16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Variación de alturas para ritmo visual */
+.image-height-large {
+  aspect-ratio: 16 / 9;
+}
+
+.image-height-medium {
+  height: 380px;
+}
+
+.image-height-small {
+  height: 320px;
+}
+
+.image-height-tall {
+  height: 440px;
+}
+
+/* Espaciado dinámico entre imágenes */
+.image-spacing-even {
+  margin-bottom: 40px;
+}
+
+.image-spacing-odd {
+  margin-bottom: 28px;
+}
+
+.image-spacing-large {
+  margin-bottom: 48px;
+}
+
+/* Texto premium en vista expandida */
+.premium-title {
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #f0ebd8 0%, #e8e0c8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.premium-category {
+  letter-spacing: 0.28em;
+  font-weight: 350;
+  position: relative;
+  display: inline-block;
+}
+
+.premium-category::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, #c084fc, transparent);
+}
+
+/* Metadata con separación elegante */
+.metadata-group {
+  display: flex;
+  gap: 64px;
+  border-top: 1px solid rgba(240, 235, 216, 0.06);
+  padding-top: 20px;
+  margin-top: 8px;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metadata-label {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: #748cab;
+  text-transform: uppercase;
+  font-weight: 300;
+}
+
+.metadata-value {
+  font-size: 17px;
+  font-weight: 400;
+  color: #f0ebd8;
+  opacity: 0.95;
+  letter-spacing: 0.01em;
+}
+
+/* Tags con efecto táctil premium */
+.premium-tag {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: #c084fc;
+  background: rgba(192, 132, 252, 0.06);
+  padding: 6px 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(192, 132, 252, 0.2);
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1.05);
+  cursor: default;
+}
+
+.premium-tag:hover {
+  background: rgba(192, 132, 252, 0.12);
+  border-color: rgba(192, 132, 252, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(192, 132, 252, 0.1);
+}
+
+/* Sección de software con líneas elegantes */
+.software-section {
+  margin-top: 24px;
+}
+
+.software-title {
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: #f0ebd8;
+  opacity: 0.7;
+  margin-bottom: 20px;
+  font-weight: 400;
+  position: relative;
+  display: inline-block;
+}
+
+.software-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.software-item {
+  font-size: 14px;
+  font-weight: 300;
+  color: #f0ebd8;
+  opacity: 0.65;
+  letter-spacing: 0.02em;
+  position: relative;
+  transition: opacity 0.2s ease;
+}
+
+.software-item:hover {
+  opacity: 0.9;
+}
+
+.software-item:not(:last-child)::after {
+  content: '/';
+  position: absolute;
+  right: -14px;
+  color: #748cab;
+  opacity: 0.4;
+  font-weight: 300;
+}
+
+/* Scroll suave para el contenedor inmersivo */
+.immersive-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.immersive-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Efecto de viñeta para overlay inmersivo */
+.vignette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.2) 100%);
+  z-index: 199;
+}
+
+/* Scroll reveal animation */
+@keyframes scrollReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.7s cubic-bezier(0.2, 0.95, 0.4, 1);
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Delay classes for staggered animations */
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 
@@ -291,6 +574,33 @@ p {
   .card-icon {
     font-size: 36px;
   }
+  
+  /* Responsive para vista expandida */
+  .metadata-group {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .image-height-medium,
+  .image-height-small,
+  .image-height-tall {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  
+  .premium-title {
+    font-size: 36px;
+    letter-spacing: 0.06em;
+  }
+  
+  .software-item:not(:last-child)::after {
+    display: none;
+  }
+  
+  .software-list {
+    flex-direction: column;
+    gap: 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -304,6 +614,25 @@ p {
   
   .card p {
     font-size: 12px;
+  }
+  
+  .metadata-group {
+    gap: 20px;
+  }
+  
+  .metadata-value {
+    font-size: 15px;
+  }
+  
+  .premium-tag {
+    font-size: 10px;
+    padding: 4px 14px;
+  }
+  
+  .image-spacing-even,
+  .image-spacing-odd,
+  .image-spacing-large {
+    margin-bottom: 24px;
   }
 }
 
@@ -319,5 +648,18 @@ p {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  
+  .scroll-reveal {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .glass-image-container {
+    transform: none !important;
+  }
+  
+  .image-bloom-effect::after {
+    display: none;
   }
 }
