@@ -1,4 +1,4 @@
-// App.jsx - Immersive expanded project view with video in right panel (no Tools & Technologies)
+// App.jsx - Immersive expanded project view with TWO videos stacked vertically in right panel
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Spline from '@splinetool/react-spline'
 
@@ -18,6 +18,7 @@ export default function App() {
   const [focusedCard3DLoaded, setFocusedCard3DLoaded] = useState(false)
   
   const splineRef = useRef(null)
+  const robotSplineRef = useRef(null)
   const pulseTimeoutRef = useRef(null)
   const transitionTimeoutRef = useRef(null)
   const exitButtonRef = useRef(null)
@@ -134,6 +135,14 @@ export default function App() {
     setIsLoaded(true)
   }
 
+  const onRobotLoad = (splineApp) => {
+    robotSplineRef.current = splineApp
+    if (splineApp.camera) {
+      splineApp.camera.position.set(0, 0, 1)
+      splineApp.camera.lookAt(0, 0, 0)
+    }
+  }
+
   const handleSphereMouseEnter = () => {
     if (isTransitioning) return
     setHover(true)
@@ -166,7 +175,7 @@ export default function App() {
       if (splineRef.current) {
         splineRef.current.emitEvent('sphereDissolve')
       }
-    }, )
+    }, 600)
 
     transitionTimeoutRef.current = setTimeout(() => {
       setShowHome(true)
@@ -315,7 +324,7 @@ export default function App() {
     return 'translate(0, 0) scale(1)'
   }
 
-  // Project data with new ARCHITECTURAL ENVIRONMENT project
+  // Project data
   const projects = [
     {
       id: 1,
@@ -336,7 +345,7 @@ export default function App() {
         { id: 2, src: "/3.jpg", caption: "Gameplay node layout" },
         { id: 3, src: "/4.jpg", caption: "In-engine performance test" }
       ],
-      video: "/mochila.webm"
+      videos: ["/mochila.webm", "/mochila02.webm"]
     },
     {
       id: 2,
@@ -357,7 +366,8 @@ export default function App() {
         { id: 1, src: "/8.jpg", caption: "360 walkthrough view" },
         { id: 2, src: "/7.jpg", caption: "Kitchen detail - Counter and appliances" },
         { id: 3, src: "/6.jpg", caption: "Kitchen detail - Sink and storage" }
-      ]
+      ],
+      video: "/mochila.webm"
     },
     {
       id: 3,
@@ -377,26 +387,25 @@ export default function App() {
         { id: 2, src: "/12.jpg", caption: "Material detail - Wood and stone textures" },
         { id: 3, src: "/11.jpg", caption: "Exterior view - Premium residential aesthetic" }
       ]
-      
     },
     {
-  id: 4,
-  title: "ORNAMENTAL",
-  category: "ENVIRONMENT / LIGHTING",
-  image: "/20.jpg",
-  description: "Cinematic lighting study focused on a traditional street lamp within a rain-soaked urban scene.",
-  extendedDescription: "A focused environment study built around a traditional street lamp as the main focal point, using contrast, atmosphere, and surface response to shape a moody nighttime composition.",
-  fullDescription: "This project is a cinematic lighting study built around a traditional street lamp as the main focal point within a rain-soaked urban scene. The composition emphasizes atmosphere, contrast, and depth, using warm emissive light against a colder environment to strengthen mood and visual hierarchy. Special attention was given to wet surfaces, reflections, and material response under low-light conditions, with the final result centered on lighting quality, surface definition, and controlled environmental storytelling.",
-  tags: ["ENVIRONMENT", "LIGHTING", "MOOD", "ATMOSPHERIC"],
-  year: "2024",
-  client: "Independent",
-  role: "Environment Artist",
-  software: [],
-  has3DContent: false,
-  additionalImages: [
-    { id: 2, src: "/21.jpg", caption: "Secondary environment angle" },
-    { id: 3, src: "/22.jpg", caption: "Material and atmosphere detail" }
-  ]
+      id: 4,
+      title: "ORNAMENTAL",
+      category: "ENVIRONMENT / LIGHTING",
+      image: "/20.jpg",
+      description: "Cinematic lighting study focused on a traditional street lamp within a rain-soaked urban scene.",
+      extendedDescription: "A focused environment study built around a traditional street lamp as the main focal point, using contrast, atmosphere, and surface response to shape a moody nighttime composition.",
+      fullDescription: "This project is a cinematic lighting study built around a traditional street lamp as the main focal point within a rain-soaked urban scene. The composition emphasizes atmosphere, contrast, and depth, using warm emissive light against a colder environment to strengthen mood and visual hierarchy. Special attention was given to wet surfaces, reflections, and material response under low-light conditions, with the final result centered on lighting quality, surface definition, and controlled environmental storytelling.",
+      tags: ["ENVIRONMENT", "LIGHTING", "MOOD", "ATMOSPHERIC"],
+      year: "2024",
+      client: "IMPORLED",
+      role: "Environment Artist",
+      software: [],
+      has3DContent: false,
+      additionalImages: [
+        { id: 2, src: "/21.jpg", caption: "Secondary environment angle" },
+        { id: 3, src: "/22.jpg", caption: "Material and atmosphere detail" }
+      ]
     }
   ]
 
@@ -473,6 +482,16 @@ export default function App() {
         ...styles.homePage,
         ...(showHome && styles.homePageVisible)
       }}>
+        {/* Robot 3D Background - ONLY when showHome is true */}
+        {showHome && (
+          <div style={styles.robotBackground}>
+            <Spline 
+              scene="/robotsplinecode" 
+              onLoad={onRobotLoad}
+            />
+          </div>
+        )}
+
         {/* Top-left logo + name */}
         <div style={styles.logoArea}>
           <img src="/A.png" alt="Logo" style={styles.logoImage} />
@@ -689,7 +708,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* IMMERSIVE EXPANDED PROJECT VIEW - WITH VIDEO IN RIGHT PANEL (solo para proyectos que tengan video) */}
+        {/* IMMERSIVE EXPANDED PROJECT VIEW - WITH MODIFIED IMAGES FOR ID 4 */}
         {focusedCard && (
           <div style={{
             ...styles.immersiveOverlay,
@@ -714,9 +733,9 @@ export default function App() {
             {/* Scrollable content */}
             <div style={styles.immersiveScrollContainer}>
               <div style={styles.immersiveContent}>
-                {/* Left side - Gallery with REAL IMAGES */}
+                {/* Left side - Gallery with IMAGES MODIFIED FOR ID 4 */}
                 <div style={styles.immersiveMedia}>
-                  {/* Main preview - HERO IMAGE */}
+                  {/* Main preview - HERO IMAGE with contain for id 4 */}
                   <div style={styles.immersiveImageArea}>
                     <img
                       src={focusedCard.image}
@@ -724,8 +743,8 @@ export default function App() {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
-                        display: 'block'
+                        objectFit: focusedCard.id === 4 ? 'contain' : 'cover',
+                        ...(focusedCard.id === 4 && { background: '#000000' })
                       }}
                       onError={(e) => {
                         e.target.style.display = 'none'
@@ -738,7 +757,7 @@ export default function App() {
                     <div style={styles.imageAreaOverlay} />
                   </div>
                   
-                  {/* Additional images with varied heights */}
+                  {/* Additional images with varied heights - MODIFIED FOR ID 4 */}
                   {focusedCard.additionalImages && focusedCard.additionalImages.map((img, idx) => {
                     const heightVariants = ['360px', '420px', '380px', '440px']
                     const variantIndex = idx % heightVariants.length
@@ -762,8 +781,8 @@ export default function App() {
                             style={{
                               width: '100%',
                               height: '100%',
-                              objectFit: 'cover',
-                              display: 'block'
+                              objectFit: focusedCard.id === 4 ? 'contain' : 'cover',
+                              ...(focusedCard.id === 4 && { background: '#000000' })
                             }}
                             onError={(e) => {
                               e.target.style.display = 'none'
@@ -795,7 +814,7 @@ export default function App() {
                   )}
                 </div>
                 
-                {/* Right side - Text panel WITH VIDEO (solo si el proyecto tiene video) */}
+                {/* Right side - Text panel WITH TWO VIDEOS STACKED */}
                 <div style={styles.immersiveText}>
                   <div style={styles.textHeaderGroup}>
                     <h1 style={styles.immersiveTitle}>{focusedCard.title}</h1>
@@ -836,8 +855,33 @@ export default function App() {
                     </div>
                   )}
                   
-                  {/* VIDEO SECTION - solo se muestra si el proyecto tiene la propiedad video */}
-                  {focusedCard.video && (
+                  {/* TWO VIDEOS SECTION - one below the other */}
+                  {focusedCard.videos && focusedCard.videos.length > 0 ? (
+                    focusedCard.videos.map((videoSrc, idx) => (
+                      <div key={idx} style={styles.rightPanelVideoContainer}>
+                        <div style={styles.rightPanelVideoWrapper}>
+                          <video
+                            src={videoSrc}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            preload="auto"
+                            style={{
+                              ...styles.rightPanelVideo,
+                              objectFit: "contain",
+                              background: "transparent"
+                            }}
+                          />
+                        </div>
+                        {focusedCard.id !== 2 && (
+                          <div style={styles.rightPanelVideoCaption}>
+                            {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"} {idx === 0 ? "(Walkthrough)" : "(Detail)"}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : focusedCard.video ? (
                     <div style={styles.rightPanelVideoContainer}>
                       <div style={styles.rightPanelVideoWrapper}>
                         <video
@@ -854,14 +898,13 @@ export default function App() {
                           }}
                         />
                       </div>
-                      {/* Caption - hidden only for COMMERCIAL KITCHEN (id: 2) */}
                       {focusedCard.id !== 2 && (
                         <div style={styles.rightPanelVideoCaption}>
                           {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"}
                         </div>
                       )}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -873,7 +916,6 @@ export default function App() {
 }
 
 const styles = {
-  // Splash screen styles
   splashScreen: {
     position: 'fixed',
     top: 0,
@@ -991,14 +1033,13 @@ const styles = {
     pointerEvents: 'none'
   },
   
-  // Home page
   homePage: {
     position: 'fixed',
     top: 0,
     left: 0,
     width: '100vw',
     height: '100vh',
-    background: '#0d1321',
+    background: '#000000',
     zIndex: 5,
     opacity: 0,
     transform: 'translateY(30px)',
@@ -1012,6 +1053,17 @@ const styles = {
     opacity: 1,
     transform: 'translateY(0)',
     pointerEvents: 'auto'
+  },
+  
+  robotBackground: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    zIndex: 1,
+    pointerEvents: 'none',
+    overflow: 'hidden'
   },
   
   logoArea: {
@@ -1217,14 +1269,13 @@ const styles = {
     outline: 'none'
   },
 
-  // WORK Panel Styles
   workPanel: {
     position: 'fixed',
     top: 0,
     left: 0,
     width: '100vw',
     height: '100vh',
-    background: '#0d1321',
+    background: '#000000',
     zIndex: 30,
     transition: 'opacity 0.5s cubic-bezier(0.3, 0.9, 0.4, 1), transform 0.5s cubic-bezier(0.3, 0.9, 0.4, 1)',
     overflow: 'hidden'
@@ -1270,10 +1321,10 @@ const styles = {
   projectCard: {
     flex: '0 0 auto',
     width: '340px',
-    background: 'rgba(20, 30, 45, 0.85)',
+    background: 'rgba(9, 21, 39, 0.85)',
     backdropFilter: 'blur(12px)',
     borderRadius: '24px',
-    border: '1px solid rgba(116, 140, 171, 0.2)',
+    border: '1px solid rgba(12, 23, 37, 0.2)',
     overflow: 'hidden',
     transition: 'all 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)',
     cursor: 'pointer',
@@ -1283,9 +1334,9 @@ const styles = {
   },
   projectCardHovered: {
     transform: 'translateY(-12px) scale(1.03)',
-    border: '1px solid rgba(9, 74, 253, 0.66)',
+    border: '1px solid rgba(9, 204, 253, 0.66)',
     boxShadow: '0 30px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(192, 132, 252, 0.15), 0 0 32px rgba(116, 140, 171, 0.4)',
-    background: 'rgba(25, 38, 55, 0.95)',
+    background: 'rgba(14, 26, 43, 0.95)',
     zIndex: 10
   },
   projectImageContainer: {
@@ -1301,14 +1352,14 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, rgba(29, 45, 68, 0.9) 0%, rgba(116, 140, 171, 0.2) 100%)',
+    background: 'linear-gradient(135deg, rgba(11, 23, 41, 0.9) 0%, rgba(33, 42, 54, 0.2) 100%)',
     transition: 'transform 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)',
     willChange: 'transform'
   },
   projectImageText: {
     fontSize: '42px',
     fontWeight: 400,
-    color: 'rgba(240, 235, 216, 0.3)',
+    color: 'rgba(1, 48, 54, 0.3)',
     fontFamily: "'Source Code Pro', monospace",
     transition: 'all 0.4s ease'
   },
@@ -1318,7 +1369,7 @@ const styles = {
     left: 0,
     right: 0,
     height: '60%',
-    background: 'linear-gradient(to top, rgba(192, 132, 252, 0.15), transparent)',
+    background: 'linear-gradient(to top, rgba(8, 5, 189, 0.15), transparent)',
     pointerEvents: 'none',
     opacity: 0,
     transition: 'opacity 0.4s ease'
@@ -1364,7 +1415,7 @@ const styles = {
     overflow: 'hidden',
     transition: 'max-height 0.6s cubic-bezier(0.2, 0.95, 0.4, 1.05), opacity 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)',
     background: 'linear-gradient(135deg, rgba(35, 55, 78, 0.98) 0%, rgba(29, 45, 68, 1) 100%)',
-    borderTop: '1px solid rgba(192, 132, 252, 0.15)',
+    borderTop: '1px solid rgba(68, 71, 255, 0.15)',
     marginTop: '0',
     borderRadius: '0 0 24px 24px'
   },
@@ -1397,7 +1448,7 @@ const styles = {
     fontSize: '8px',
     letterSpacing: '0.1em',
     color: '#5e9cfa',
-    background: 'rgba(192, 132, 252, 0.12)',
+    background: 'rgba(21, 2, 104, 0.12)',
     padding: '3px 10px',
     borderRadius: '16px',
     border: '1px solid rgba(132, 144, 252, 0.25)',
@@ -1469,7 +1520,6 @@ const styles = {
     display: 'block'
   },
 
-  // IMMERSIVE PROJECT VIEW
   immersiveOverlay: {
     position: 'fixed',
     top: 0,
@@ -1521,11 +1571,7 @@ const styles = {
     overflowX: 'hidden',
     scrollBehavior: 'smooth',
     padding: '80px 60px',
-    boxSizing: 'border-box',
-    '&::-webkit-scrollbar': {
-      width: '0px',
-      background: 'transparent'
-    }
+    boxSizing: 'border-box'
   },
   immersiveContent: {
     display: 'flex',
@@ -1535,7 +1581,6 @@ const styles = {
     gap: '80px',
     animation: 'contentFloatIn 0.6s cubic-bezier(0.2, 0.95, 0.4, 1)'
   },
-  // LEFT COLUMN
   immersiveMedia: {
     flex: 1.3,
     display: 'flex',
@@ -1619,7 +1664,6 @@ const styles = {
     background: 'linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent)',
     pointerEvents: 'none'
   },
-  // RIGHT COLUMN
   immersiveText: {
     flex: 1,
     display: 'flex',
@@ -1658,7 +1702,6 @@ const styles = {
     fontFamily: "'Source Code Pro', monospace",
     fontWeight: 300,
     fontSize: '16px',
-    lineHeight: 1.7,
     letterSpacing: '0.02em',
     color: '#f0ebd8',
     opacity: 0.85
@@ -1725,9 +1768,8 @@ const styles = {
     padding: '8px 0',
     borderBottom: '1px solid rgba(94, 156, 250, 0.3)'
   },
-  // VIDEO IN RIGHT PANEL
   rightPanelVideoContainer: {
-    marginTop: '150px',
+    marginTop: '24px',
     marginBottom: '8px',
     width: '100%'
   },
@@ -1736,7 +1778,7 @@ const styles = {
     borderRadius: '20px',
     overflow: 'hidden',
     transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-    animation: 'floatVideo 4s ease-in-out infinite'
+    animation: 'floatVideo 6s cubic-bezier(0.4, 0.0, 0.2, 1) infinite'
   },
   rightPanelVideo: {
     width: '100%',
@@ -1811,17 +1853,25 @@ styleSheet.textContent = `
   
   @keyframes floatVideo {
     0% {
-      transform: translateY(0px) scale(1);
+      transform: translateY(0px) translateX(0px) scale(1);
     }
-    50% {
-      transform: translateY(-8px) scale(1.015);
+    20% {
+      transform: translateY(-6px) translateX(2px) scale(1.01);
+    }
+    40% {
+      transform: translateY(-14px) translateX(-2px) scale(1.02);
+    }
+    60% {
+      transform: translateY(-10px) translateX(1px) scale(1.015);
+    }
+    80% {
+      transform: translateY(-6px) translateX(-1px) scale(1.01);
     }
     100% {
-      transform: translateY(0px) scale(1);
+      transform: translateY(0px) translateX(0px) scale(1);
     }
   }
   
-  /* BLOOM EFFECT FOR NAV LABELS */
   .nav-label-bloom {
     transition: all 0.3s ease;
   }
@@ -1831,43 +1881,6 @@ styleSheet.textContent = `
     opacity: 1 !important;
   }
   
-  /* Card hover glow effect */
-  .project-card:hover .card-glow {
-    opacity: 1;
-  }
-  
-  .project-card:hover .project-image-text {
-    color: rgba(240, 235, 216, 0.45);
-    transform: scale(1.05);
-  }
-  
-  .project-card:hover .project-title {
-    color: #f0ebd8;
-    opacity: 1;
-  }
-  
-  .project-card:hover .project-category {
-    opacity: 1;
-  }
-  
-  .project-card:hover .project-description {
-    opacity: 0.85;
-  }
-  
-  /* Vignette effect for immersive overlay */
-  .immersive-overlay::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.2) 100%);
-    z-index: 199;
-  }
-  
-  /* Smooth scroll */
   .work-panel-content {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -1886,7 +1899,6 @@ styleSheet.textContent = `
     display: none;
   }
   
-  /* Premium glass edge highlight */
   .immersive-additional-image:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -1897,13 +1909,11 @@ styleSheet.textContent = `
     box-shadow: 0 30px 50px -16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
   
-  /* Right panel video hover */
   .right-panel-video-wrapper:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.4);
   }
   
-  /* Responsive adjustments */
   @media (max-width: 1280px) {
     .headline {
       font-size: 10px;
