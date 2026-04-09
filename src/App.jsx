@@ -820,7 +820,7 @@ export default function App() {
                   bottom: '12%'
                 })
               }}>
-                <a href="mailto:annya.frayshehd@gmail.com" style={{
+                <a href="mailto:annya.frayshehtd@gmail.com" style={{
                   ...styles.contactEmail,
                   ...(isMobile && { fontSize: '11px' })
                 }} className="contact-email">
