@@ -1,6 +1,104 @@
 // App.jsx - Immersive expanded project view with TWO videos stacked vertically in right panel
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import Spline from '@splinetool/react-spline'
+
+// Optimized Project Card Component with improved structure - REESTRUCTURACIÓN COMPLETA
+const ProjectCard = memo(({ project, isHovered, onMouseEnter, onMouseMove, onMouseLeave, onClick, imageOffset, tilt, isFocused }) => {
+  const [showDetails, setShowDetails] = useState(false)
+  
+  return (
+    <div 
+      style={{
+        ...styles.projectCard,
+        ...(isHovered && !isFocused && styles.projectCardHovered),
+        transform: tilt 
+          ? `perspective(1200px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`
+          : 'perspective(1200px) rotateX(0deg) rotateY(0deg)',
+        transition: isHovered && !isFocused
+          ? 'transform 0.4s cubic-bezier(0.2, 0.95, 0.4, 1.05), box-shadow 0.3s ease'
+          : 'transform 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)'
+      }}
+      onMouseEnter={() => { onMouseEnter(); setShowDetails(true) }}
+      onMouseMove={onMouseMove}
+      onMouseLeave={() => { onMouseLeave(); setShowDetails(false) }}
+      onClick={onClick}
+    >
+      {/* CAPA 1: IMAGEN PRINCIPAL - MÁS GRANDE, MÁS DOMINANTE */}
+      <div style={styles.projectImageContainer}>
+        <div 
+          style={{
+            ...styles.projectImagePlaceholder,
+            transform: imageOffset 
+              ? `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(1.15)`
+              : 'translate(0, 0) scale(1)',
+            transition: imageOffset ? 'none' : 'transform 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)'
+          }}
+        >
+          <img 
+            src={project.image} 
+            alt={project.title}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+            loading="lazy"
+            onError={(e) => {
+              e.target.style.display = 'none'
+              e.target.parentElement.querySelector('.project-image-text').style.display = 'flex'
+            }}
+          />
+          <span style={{...styles.projectImageText, display: 'none'}} className="project-image-text">
+            {project.title.charAt(0)}
+          </span>
+        </div>
+        
+        {/* CAPA 2: OVERLAY SEMITRANSPARENTE CON INFO BÁSICA - SIEMPRE VISIBLE */}
+        <div style={{
+          ...styles.imageOverlay,
+          ...(isHovered && styles.imageOverlayHovered)
+        }}>
+          <h3 style={styles.overlayTitle}>{project.title}</h3>
+          <p style={styles.overlayCategory}>{project.category}</p>
+        </div>
+        
+        <div style={styles.cardGlow} />
+      </div>
+      
+      {/* CAPA 3: PANEL FLOTANTE - APARECE DESDE ABAJO SIN ROMPER LAYOUT */}
+      <div style={{
+        ...styles.floatingPanel,
+        ...(showDetails && !isFocused && styles.floatingPanelVisible)
+      }}>
+        <div style={styles.floatingContent}>
+          <p style={styles.floatingDescription}>{project.extendedDescription || project.description}</p>
+          
+          <div style={styles.floatingTags}>
+            {project.tags.slice(0, 3).map((tag, idx) => (
+              <span key={idx} style={styles.floatingTag}>{tag}</span>
+            ))}
+          </div>
+          
+          <div style={styles.floatingMeta}>
+            <span>{project.year}</span>
+            <span style={styles.floatingSeparator}>•</span>
+            <span>{project.client}</span>
+          </div>
+          
+          {project.projectUrl && (
+            <div style={styles.floatingUrl}>
+              <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={styles.floatingUrlLink}>
+                VIEW PROJECT →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})
+
+ProjectCard.displayName = 'ProjectCard'
 
 export default function App() {
   const [active, setActive] = useState(false)
@@ -34,7 +132,7 @@ export default function App() {
   const lastTimeRef = useRef(0)
   const animationFrameRef = useRef(null)
   
-  // Card hover states
+  // Card hover states - optimized with useCallback
   const [hoveredCard, setHoveredCard] = useState(null)
   const [cardImageOffsets, setCardImageOffsets] = useState({})
   const [cardTilt, setCardTilt] = useState({})
@@ -182,8 +280,8 @@ export default function App() {
     }, 800)
   }
 
-  // Horizontal scroll handlers
-  const handleMouseDown = (e) => {
+  // Optimized horizontal scroll handlers with passive events
+  const handleMouseDown = useCallback((e) => {
     if (focusedCard) return
     if (!scrollContainerRef.current) return
     isDraggingRef.current = true
@@ -199,9 +297,9 @@ export default function App() {
     
     scrollContainerRef.current.style.cursor = 'grabbing'
     scrollContainerRef.current.style.userSelect = 'none'
-  }
+  }, [focusedCard])
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     if (!isDraggingRef.current || !scrollContainerRef.current || focusedCard) return
     e.preventDefault()
     
@@ -217,9 +315,9 @@ export default function App() {
     
     lastXRef.current = e.pageX
     lastTimeRef.current = now
-  }
+  }, [focusedCard])
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return
     isDraggingRef.current = false
     
@@ -244,10 +342,10 @@ export default function App() {
       cancelAnimationFrame(animationFrameRef.current)
     }
     animationFrameRef.current = requestAnimationFrame(applyInertia)
-  }
+  }, [focusedCard])
 
-  // Card micro-interactions
-  const handleCardMouseMove = (cardId, e) => {
+  // Optimized card micro-interactions
+  const handleCardMouseMove = useCallback((cardId, e) => {
     if (focusedCard) return
     
     const card = e.currentTarget
@@ -264,24 +362,26 @@ export default function App() {
       ...prev,
       [cardId]: { rotateX: mouseY * 8, rotateY: mouseX * 8 }
     }))
-  }
+  }, [focusedCard])
 
-  const handleCardMouseLeave = (cardId) => {
+  const handleCardMouseLeave = useCallback((cardId) => {
     if (focusedCard) return
     
-    setCardImageOffsets(prev => ({
-      ...prev,
-      [cardId]: { x: 0, y: 0 }
-    }))
-    setCardTilt(prev => ({
-      ...prev,
-      [cardId]: { rotateX: 0, rotateY: 0 }
-    }))
+    setCardImageOffsets(prev => {
+      const newState = { ...prev }
+      delete newState[cardId]
+      return newState
+    })
+    setCardTilt(prev => {
+      const newState = { ...prev }
+      delete newState[cardId]
+      return newState
+    })
     setHoveredCard(null)
-  }
+  }, [focusedCard])
 
   // Card focus handlers
-  const handleCardClick = (project) => {
+  const handleCardClick = useCallback((project) => {
     if (focusTransitioning || focusedCard) return
     
     setFocusTransitioning(true)
@@ -291,9 +391,9 @@ export default function App() {
     setTimeout(() => {
       setFocusTransitioning(false)
     }, 500)
-  }
+  }, [focusTransitioning, focusedCard])
 
-  const closeFocusedCard = () => {
+  const closeFocusedCard = useCallback(() => {
     if (focusTransitioning) return
     
     setFocusTransitioning(true)
@@ -303,7 +403,7 @@ export default function App() {
     setTimeout(() => {
       setFocusTransitioning(false)
     }, 500)
-  }
+  }, [focusTransitioning])
 
   const getSphereTransform = () => {
     if (showWorkPanel && exitButtonPosition.x > 0) {
@@ -325,7 +425,7 @@ export default function App() {
   }
 
   // Project data
-  const projects = [
+  const projects = useMemo(() => [
     {
       id: 1,
       title: "NO DAYS OFF",
@@ -345,7 +445,7 @@ export default function App() {
         { id: 2, src: "/3.jpg", caption: "Gameplay node layout" },
         { id: 3, src: "/4.jpg", caption: "In-engine performance test" }
       ],
-      videos: ["/mochila.webm", "/mochila02.webm"]
+      videos: ["/mochila.webm"]
     },
     {
       id: 2,
@@ -367,7 +467,7 @@ export default function App() {
         { id: 2, src: "/7.jpg", caption: "Kitchen detail - Counter and appliances" },
         { id: 3, src: "/6.jpg", caption: "Kitchen detail - Sink and storage" }
       ],
-      video: "/mochila.webm"
+      
     },
     {
       id: 3,
@@ -407,7 +507,7 @@ export default function App() {
         { id: 3, src: "/22.jpg", caption: "Material and atmosphere detail" }
       ]
     }
-  ]
+  ], [])
 
   useEffect(() => {
     return () => {
@@ -613,85 +713,18 @@ export default function App() {
           >
             <div style={styles.projectsContainer}>
               {projects.map((project) => (
-                <div 
+                <ProjectCard
                   key={project.id}
-                  ref={el => cardRefs.current[project.id] = el}
-                  style={{
-                    ...styles.projectCard,
-                    ...(hoveredCard === project.id && styles.projectCardHovered),
-                    transform: cardTilt[project.id] 
-                      ? `perspective(1200px) rotateX(${cardTilt[project.id].rotateX}deg) rotateY(${cardTilt[project.id].rotateY}deg)`
-                      : 'perspective(1200px) rotateX(0deg) rotateY(0deg)',
-                    transition: hoveredCard === project.id && !focusedCard
-                      ? 'all 0.4s cubic-bezier(0.2, 0.95, 0.4, 1.05)'
-                      : 'all 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)'
-                  }}
+                  project={project}
+                  isHovered={hoveredCard === project.id}
                   onMouseEnter={() => !focusedCard && setHoveredCard(project.id)}
                   onMouseMove={(e) => handleCardMouseMove(project.id, e)}
                   onMouseLeave={() => handleCardMouseLeave(project.id)}
                   onClick={() => handleCardClick(project)}
-                >
-                  <div style={styles.projectImageContainer}>
-                    <div 
-                      style={{
-                        ...styles.projectImagePlaceholder,
-                        transform: cardImageOffsets[project.id] 
-                          ? `translate(${cardImageOffsets[project.id].x}px, ${cardImageOffsets[project.id].y}px) scale(1.2)`
-                          : 'translate(0, 0) scale(1)',
-                        transition: cardImageOffsets[project.id] ? 'none' : 'transform 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)'
-                      }}
-                    >
-                      <img 
-                        src={project.image} 
-                        alt={project.title}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                          e.target.parentElement.querySelector('.project-image-text').style.display = 'flex'
-                        }}
-                      />
-                      <span style={{...styles.projectImageText, display: 'none'}} className="project-image-text">
-                        {project.title.charAt(0)}
-                      </span>
-                    </div>
-                    <div style={styles.cardGlow} />
-                  </div>
-                  <div style={styles.projectInfo}>
-                    <h3 style={styles.projectTitle}>{project.title}</h3>
-                    <p style={styles.projectCategory}>{project.category}</p>
-                    <p style={styles.projectDescription}>{project.description}</p>
-                  </div>
-                  
-                  <div style={{
-                    ...styles.expandablePanel,
-                    ...(hoveredCard === project.id && !focusedCard && styles.expandablePanelVisible)
-                  }}>
-                    <div style={styles.expandableContent}>
-                      <p style={styles.extendedDescription}>{project.extendedDescription}</p>
-                      <div style={styles.tagsContainer}>
-                        {project.tags.slice(0, 3).map((tag, idx) => (
-                          <span key={idx} style={styles.tag}>{tag}</span>
-                        ))}
-                      </div>
-                      <div style={styles.metaInfo}>
-                        <span style={styles.metaItem}>{project.year}</span>
-                        <span style={styles.metaSeparator}>•</span>
-                        <span style={styles.metaItem}>{project.client}</span>
-                      </div>
-                      {project.projectUrl && (
-                        <div style={styles.projectUrlContainer}>
-                          <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" style={styles.projectUrlLink}>
-                            VIEW PROJECT →
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  imageOffset={cardImageOffsets[project.id]}
+                  tilt={cardTilt[project.id]}
+                  isFocused={!!focusedCard}
+                />
               ))}
             </div>
           </div>
@@ -708,7 +741,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* IMMERSIVE EXPANDED PROJECT VIEW - WITH MODIFIED IMAGES FOR ID 4 */}
+        {/* IMMERSIVE EXPANDED PROJECT VIEW */}
         {focusedCard && (
           <div style={{
             ...styles.immersiveOverlay,
@@ -733,7 +766,7 @@ export default function App() {
             {/* Scrollable content */}
             <div style={styles.immersiveScrollContainer}>
               <div style={styles.immersiveContent}>
-                {/* Left side - Gallery with IMAGES MODIFIED FOR ID 4 */}
+                {/* Left side - Gallery */}
                 <div style={styles.immersiveMedia}>
                   {/* Main preview - HERO IMAGE with contain for id 4 */}
                   <div style={styles.immersiveImageArea}>
@@ -757,7 +790,7 @@ export default function App() {
                     <div style={styles.imageAreaOverlay} />
                   </div>
                   
-                  {/* Additional images with varied heights - MODIFIED FOR ID 4 */}
+                  {/* Additional images with varied heights */}
                   {focusedCard.additionalImages && focusedCard.additionalImages.map((img, idx) => {
                     const heightVariants = ['360px', '420px', '380px', '440px']
                     const variantIndex = idx % heightVariants.length
@@ -860,23 +893,35 @@ export default function App() {
                     focusedCard.videos.map((videoSrc, idx) => (
                       <div key={idx} style={styles.rightPanelVideoContainer}>
                         <div style={styles.rightPanelVideoWrapper}>
-                          <video
-                            src={videoSrc}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            preload="auto"
-                            style={{
-                              ...styles.rightPanelVideo,
-                              objectFit: "contain",
-                              background: "transparent"
-                            }}
-                          />
+                          {videoSrc.endsWith('.webp') ? (
+                            <img
+                              src={videoSrc}
+                              alt={`Animation ${idx + 1}`}
+                              style={{
+                                ...styles.rightPanelVideo,
+                                objectFit: "contain",
+                                background: "transparent"
+                              }}
+                            />
+                          ) : (
+                            <video
+                              src={videoSrc}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              preload="auto"
+                              style={{
+                                ...styles.rightPanelVideo,
+                                objectFit: "contain",
+                                background: "transparent"
+                              }}
+                            />
+                          )}
                         </div>
                         {focusedCard.id !== 2 && (
                           <div style={styles.rightPanelVideoCaption}>
-                            {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"} {idx === 0 ? "(Walkthrough)" : "(Detail)"}
+                            {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"} {idx === 0 ? "(Walkthrough)" : idx === 1 ? "(Detail)" : "(Animation)"}
                           </div>
                         )}
                       </div>
@@ -897,12 +942,9 @@ export default function App() {
                             background: "transparent"
                           }}
                         />
-                      </div>
-                      {focusedCard.id !== 2 && (
-                        <div style={styles.rightPanelVideoCaption}>
-                          {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"}
+                      
                         </div>
-                      )}
+                      
                     </div>
                   ) : null}
                 </div>
@@ -1318,33 +1360,32 @@ const styles = {
     minHeight: 'min-content',
     flexWrap: 'nowrap'
   },
+  
+  // NUEVOS ESTILOS REESTRUCTURADOS PARA CARDS
   projectCard: {
     flex: '0 0 auto',
-    width: '340px',
-    background: 'rgba(9, 21, 39, 0.85)',
-    backdropFilter: 'blur(12px)',
-    borderRadius: '24px',
-    border: '1px solid rgba(12, 23, 37, 0.2)',
-    overflow: 'hidden',
-    transition: 'all 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)',
+    width: '360px',
+    background: 'transparent',
+    borderRadius: '20px',
+    overflow: 'visible',
+    transition: 'transform 0.4s cubic-bezier(0.2, 0.95, 0.4, 1.05), box-shadow 0.3s ease',
     cursor: 'pointer',
     position: 'relative',
     zIndex: 1,
     willChange: 'transform'
   },
   projectCardHovered: {
-    transform: 'translateY(-12px) scale(1.03)',
-    border: '1px solid rgba(9, 204, 253, 0.66)',
-    boxShadow: '0 30px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(192, 132, 252, 0.15), 0 0 32px rgba(116, 140, 171, 0.4)',
-    background: 'rgba(14, 26, 43, 0.95)',
+    transform: 'translateY(-8px) scale(1.02)',
     zIndex: 10
   },
   projectImageContainer: {
     width: '100%',
-    aspectRatio: '16 / 9',
-    background: 'rgba(240, 235, 216, 0.02)',
+    aspectRatio: '4 / 3',
+    borderRadius: '20px',
     overflow: 'hidden',
-    position: 'relative'
+    position: 'relative',
+    background: '#0a0a0a',
+    boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.3)'
   },
   projectImagePlaceholder: {
     width: '100%',
@@ -1363,6 +1404,43 @@ const styles = {
     fontFamily: "'Source Code Pro', monospace",
     transition: 'all 0.4s ease'
   },
+  
+  // NUEVO: Overlay sobre la imagen
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: '30px 20px 20px 20px',
+    background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+    transform: 'translateY(0)',
+    transition: 'transform 0.3s ease, padding 0.3s ease'
+  },
+  imageOverlayHovered: {
+    padding: '25px 20px 25px 20px',
+    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)'
+  },
+  overlayTitle: {
+    fontFamily: "'Source Code Pro', monospace",
+    fontWeight: 500,
+    fontSize: '18px',
+    letterSpacing: '0.08em',
+    color: '#f0ebd8',
+    margin: 0,
+    marginBottom: '6px',
+    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+  },
+  overlayCategory: {
+    fontFamily: "'Source Code Pro', monospace",
+    fontWeight: 300,
+    fontSize: '10px',
+    letterSpacing: '0.2em',
+    color: '#5e9cfa',
+    margin: 0,
+    textTransform: 'uppercase',
+    textShadow: '0 1px 1px rgba(0,0,0,0.3)'
+  },
+  
   cardGlow: {
     position: 'absolute',
     bottom: 0,
@@ -1374,113 +1452,84 @@ const styles = {
     opacity: 0,
     transition: 'opacity 0.4s ease'
   },
-  projectInfo: {
-    padding: '20px'
-  },
-  projectTitle: {
-    fontFamily: "'Source Code Pro', monospace",
-    fontWeight: 400,
-    fontSize: '17px',
-    letterSpacing: '0.08em',
-    color: '#f0ebd8',
-    opacity: 0.95,
-    marginBottom: '6px'
-  },
-  projectCategory: {
-    fontFamily: "'Source Code Pro', monospace",
-    fontWeight: 300,
-    fontSize: '10px',
-    letterSpacing: '0.18em',
-    color: '#5e9cfa',
-    opacity: 0.85,
-    marginBottom: '10px',
-    textTransform: 'uppercase'
-  },
-  projectDescription: {
-    fontFamily: "'Source Code Pro', monospace",
-    fontWeight: 300,
-    fontSize: '11px',
-    lineHeight: 1.45,
-    letterSpacing: '0.02em',
-    color: '#f0ebd8',
-    opacity: 0.7,
-    margin: 0
-  },
   
-  expandablePanel: {
-    position: 'relative',
-    width: '100%',
-    maxHeight: '0',
-    opacity: 0,
+  // NUEVO: Panel flotante
+  floatingPanel: {
+    position: 'absolute',
+    bottom: '-20px',
+    left: '15px',
+    right: '15px',
+    background: 'rgba(13, 25, 45, 0.98)',
+    backdropFilter: 'blur(16px)',
+    borderRadius: '16px',
     overflow: 'hidden',
-    transition: 'max-height 0.6s cubic-bezier(0.2, 0.95, 0.4, 1.05), opacity 0.5s cubic-bezier(0.2, 0.95, 0.4, 1.05)',
-    background: 'linear-gradient(135deg, rgba(35, 55, 78, 0.98) 0%, rgba(29, 45, 68, 1) 100%)',
-    borderTop: '1px solid rgba(68, 71, 255, 0.15)',
-    marginTop: '0',
-    borderRadius: '0 0 24px 24px'
+    opacity: 0,
+    transform: 'translateY(20px) scale(0.95)',
+    transition: 'all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1)',
+    pointerEvents: 'none',
+    zIndex: 20,
+    boxShadow: '0 20px 35px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(94, 156, 250, 0.15)'
   },
-  expandablePanelVisible: {
-    maxHeight: '320px',
-    opacity: 1
+  floatingPanelVisible: {
+    opacity: 1,
+    transform: 'translateY(0) scale(1)',
+    pointerEvents: 'auto',
+    bottom: '-10px'
   },
-  expandableContent: {
-    padding: '16px 20px 20px 20px'
+  floatingContent: {
+    padding: '16px 18px 18px 18px'
   },
-  extendedDescription: {
+  floatingDescription: {
     fontFamily: "'Source Code Pro', monospace",
     fontWeight: 300,
     fontSize: '11px',
     lineHeight: 1.5,
-    letterSpacing: '0.02em',
     color: '#f0ebd8',
-    opacity: 0.8,
-    marginBottom: '12px'
+    opacity: 0.85,
+    marginBottom: '12px',
+    display: '-webkit-box',
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden'
   },
-  tagsContainer: {
+  floatingTags: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: '6px',
     marginBottom: '12px'
   },
-  tag: {
+  floatingTag: {
     fontFamily: "'Source Code Pro', monospace",
     fontWeight: 300,
     fontSize: '8px',
     letterSpacing: '0.1em',
     color: '#5e9cfa',
-    background: 'rgba(21, 2, 104, 0.12)',
+    background: 'rgba(94, 156, 250, 0.12)',
     padding: '3px 10px',
-    borderRadius: '16px',
-    border: '1px solid rgba(132, 144, 252, 0.25)',
-    textTransform: 'uppercase'
+    borderRadius: '14px',
+    border: '1px solid rgba(94, 156, 250, 0.2)'
   },
-  metaInfo: {
+  floatingMeta: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    paddingTop: '8px',
-    borderTop: '1px solid rgba(116, 140, 171, 0.2)'
-  },
-  metaItem: {
+    gap: '8px',
     fontFamily: "'Source Code Pro', monospace",
     fontWeight: 300,
     fontSize: '9px',
-    letterSpacing: '0.08em',
-    color: '#f0ebd8',
-    opacity: 0.65
-  },
-  metaSeparator: {
-    fontFamily: "'Source Code Pro', monospace",
-    fontSize: '9px',
     color: '#748cab',
-    opacity: 0.6
-  },
-  projectUrlContainer: {
-    marginTop: '12px',
     paddingTop: '8px',
-    borderTop: '1px solid rgba(192, 132, 252, 0.15)'
+    borderTop: '1px solid rgba(116, 140, 171, 0.2)'
   },
-  projectUrlLink: {
+  floatingSeparator: {
+    color: '#748cab',
+    opacity: 0.5
+  },
+  floatingUrl: {
+    marginTop: '10px',
+    paddingTop: '8px',
+    borderTop: '1px solid rgba(94, 156, 250, 0.15)'
+  },
+  floatingUrlLink: {
     fontFamily: "'Source Code Pro', monospace",
     fontWeight: 350,
     fontSize: '9px',
@@ -1912,198 +1961,6 @@ styleSheet.textContent = `
   .right-panel-video-wrapper:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.4);
-  }
-  
-  @media (max-width: 1280px) {
-    .headline {
-      font-size: 10px;
-      max-width: 400px;
-    }
-    .desc-line {
-      font-size: 13px;
-    }
-    .nav-wrapper {
-      right: 50px;
-      transform: translateY(-50%) scale(0.95);
-    }
-    .description {
-      left: 64px;
-      bottom: 100px;
-      max-width: 400px;
-    }
-    .projects-container {
-      gap: 25px;
-    }
-    .project-card {
-      width: 300px;
-    }
-    .immersive-content {
-      width: 90%;
-      gap: 52px;
-    }
-    .immersive-title {
-      font-size: 56px;
-    }
-    .immersive-scroll-container {
-      padding: 60px 40px;
-    }
-    .immersive-details {
-      gap: 48px;
-    }
-  }
-  
-  @media (max-width: 1024px) {
-    .logo-area {
-      top: 30px;
-      left: 40px;
-    }
-    .headline {
-      display: none;
-    }
-    .availability {
-      top: 28px;
-      right: 40px;
-    }
-    .description {
-      left: 40px;
-      bottom: 80px;
-      max-width: 340px;
-    }
-    .desc-line {
-      font-size: 12px;
-      margin-bottom: 8px;
-    }
-    .nav-wrapper {
-      right: 30px;
-      transform: translateY(-50%) scale(0.85);
-    }
-    .logo-name {
-      font-size: 13px;
-    }
-    .projects-container {
-      gap: 20px;
-    }
-    .project-card {
-      width: 280px;
-    }
-    .project-title {
-      font-size: 16px;
-    }
-    .immersive-content {
-      flex-direction: column;
-      width: 85%;
-      gap: 48px;
-    }
-    .immersive-media {
-      flex: none;
-      width: 100%;
-    }
-    .immersive-title {
-      font-size: 48px;
-    }
-    .immersive-details {
-      gap: 36px;
-    }
-    .work-close-button {
-      bottom: 32px;
-      right: 32px;
-    }
-    .work-close-icon {
-      width: 40px;
-      height: 40px;
-    }
-    .work-panel-content {
-      padding: 50px 40px;
-    }
-    .immersive-scroll-container {
-      padding: 50px 30px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .description {
-      left: 30px;
-      bottom: 60px;
-      max-width: 280px;
-    }
-    .desc-line {
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-    .nav-wrapper {
-      right: 20px;
-      transform: translateY(-50%) scale(0.75);
-    }
-    .logo-name {
-      font-size: 11px;
-    }
-    .availability-text {
-      font-size: 8px;
-    }
-    .logo-area {
-      gap: 8px;
-    }
-    .logo-image {
-      height: 20px;
-    }
-    .work-panel-content {
-      padding: 40px 20px;
-    }
-    .projects-container {
-      gap: 16px;
-      padding: 15px;
-    }
-    .project-card {
-      width: 260px;
-    }
-    .project-info {
-      padding: 16px;
-    }
-    .project-title {
-      font-size: 14px;
-    }
-    .project-description {
-      font-size: 10px;
-    }
-    .immersive-content {
-      width: 90%;
-      gap: 36px;
-    }
-    .immersive-title {
-      font-size: 36px;
-      letter-spacing: 0.06em;
-    }
-    .immersive-details {
-      flex-direction: column;
-      gap: 20px;
-    }
-    .immersive-close-button {
-      top: 24px;
-      right: 24px;
-      width: 44px;
-      height: 44px;
-    }
-    .immersive-close-icon {
-      width: 40px;
-      height: 40px;
-    }
-    .work-close-button {
-      bottom: 24px;
-      right: 24px;
-    }
-    .work-close-icon {
-      width: 32px;
-      height: 32px;
-    }
-    .immersive-scroll-container {
-      padding: 40px 20px;
-    }
-    .immersive-image-text {
-      font-size: 80px;
-    }
-    .immersive-additional-image-text {
-      font-size: 12px;
-    }
   }
 `;
 document.head.appendChild(styleSheet);

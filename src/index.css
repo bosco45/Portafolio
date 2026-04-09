@@ -558,9 +558,105 @@ p {
 .delay-5 { transition-delay: 0.5s; }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE - MEJORAS COMPLETAS PARA PC Y TELÉFONO
    ============================================ */
 
+/* Pantallas grandes (PC - 1440px en adelante) */
+@media (min-width: 1440px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+  
+  .card {
+    padding: 40px 32px;
+  }
+  
+  .card-icon {
+    font-size: 56px;
+  }
+  
+  .metadata-group {
+    gap: 80px;
+  }
+}
+
+/* Laptops y tablets grandes (1024px - 1440px) */
+@media (max-width: 1440px) and (min-width: 1024px) {
+  .grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+  }
+  
+  .metadata-group {
+    gap: 56px;
+  }
+  
+  .image-height-medium {
+    height: 340px;
+  }
+}
+
+/* Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  
+  .card {
+    padding: 28px 20px;
+  }
+  
+  .card-icon {
+    font-size: 42px;
+  }
+  
+  .card h3 {
+    font-size: 20px;
+  }
+  
+  .card p {
+    font-size: 13px;
+  }
+  
+  .metadata-group {
+    flex-direction: column;
+    gap: 32px;
+  }
+  
+  .image-height-medium,
+  .image-height-small,
+  .image-height-tall {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  
+  .premium-title {
+    font-size: 42px;
+    letter-spacing: 0.07em;
+  }
+  
+  .software-list {
+    gap: 16px;
+  }
+  
+  .software-item:not(:last-child)::after {
+    display: none;
+  }
+  
+  .software-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .software-item {
+    font-size: 12px;
+  }
+}
+
+/* Móviles grandes (480px - 768px) */
 @media (max-width: 768px) {
   .grid-3 {
     grid-template-columns: 1fr;
@@ -573,9 +669,17 @@ p {
   
   .card-icon {
     font-size: 36px;
+    margin-bottom: 16px;
   }
   
-  /* Responsive para vista expandida */
+  .card h3 {
+    font-size: 18px;
+  }
+  
+  .card p {
+    font-size: 12px;
+  }
+  
   .metadata-group {
     flex-direction: column;
     gap: 24px;
@@ -601,23 +705,19 @@ p {
     flex-direction: column;
     gap: 12px;
   }
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 20px 16px;
+  
+  .image-spacing-even,
+  .image-spacing-odd,
+  .image-spacing-large {
+    margin-bottom: 24px;
   }
   
-  .card h3 {
-    font-size: 18px;
+  .premium-category {
+    letter-spacing: 0.2em;
   }
   
-  .card p {
-    font-size: 12px;
-  }
-  
-  .metadata-group {
-    gap: 20px;
+  .metadata-label {
+    font-size: 10px;
   }
   
   .metadata-value {
@@ -628,11 +728,152 @@ p {
     font-size: 10px;
     padding: 4px 14px;
   }
+}
+
+/* Móviles pequeños (menos de 480px) */
+@media (max-width: 480px) {
+  .card {
+    padding: 20px 16px;
+  }
+  
+  .card h3 {
+    font-size: 16px;
+  }
+  
+  .card p {
+    font-size: 11px;
+  }
+  
+  .card-icon {
+    font-size: 32px;
+  }
+  
+  .metadata-group {
+    gap: 20px;
+  }
+  
+  .metadata-value {
+    font-size: 14px;
+  }
+  
+  .premium-tag {
+    font-size: 9px;
+    padding: 4px 12px;
+  }
   
   .image-spacing-even,
   .image-spacing-odd,
   .image-spacing-large {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .software-title {
+    font-size: 12px;
+  }
+  
+  .software-item {
+    font-size: 11px;
+  }
+  
+  h1 {
+    font-size: clamp(32px, 8vw, 48px);
+  }
+  
+  h2 {
+    font-size: clamp(24px, 6vw, 32px);
+  }
+  
+  h3 {
+    font-size: clamp(18px, 4vw, 20px);
+  }
+  
+  p {
+    font-size: 13px;
+  }
+}
+
+/* Móviles muy pequeños (menos de 360px) */
+@media (max-width: 360px) {
+  .card {
+    padding: 16px 12px;
+  }
+  
+  .card h3 {
+    font-size: 15px;
+  }
+  
+  .card p {
+    font-size: 10px;
+  }
+  
+  .metadata-label {
+    font-size: 9px;
+  }
+  
+  .metadata-value {
+    font-size: 13px;
+  }
+  
+  .premium-tag {
+    font-size: 8px;
+    padding: 3px 10px;
+  }
+}
+
+/* ============================================
+   MEJORAS TÁCTILES PARA MÓVIL
+   ============================================ */
+
+@media (max-width: 768px) {
+  button, 
+  .card,
+  .nav-label-bloom,
+  .premium-tag,
+  .work-close-button,
+  .immersive-close-button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(240, 235, 216, 0.1);
+  }
+  
+  .work-panel-content,
+  .immersive-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-size: 14px;
+  }
+  
+  .grid-3 {
+    gap: 16px;
+  }
+  
+  .flex, .flex-center, .flex-column {
+    gap: 12px;
+  }
+}
+
+/* ============================================
+   ORIENTACIÓN PAISAJE EN MÓVIL
+   ============================================ */
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  
+  .card {
+    padding: 20px 16px;
+  }
+  
+  .card-icon {
+    font-size: 32px;
+  }
+  
+  .metadata-group {
+    flex-direction: row;
+    gap: 24px;
   }
 }
 
@@ -661,5 +902,13 @@ p {
   
   .image-bloom-effect::after {
     display: none;
+  }
+  
+  .card:hover {
+    transform: none;
+  }
+  
+  .immersive-additional-image:hover {
+    transform: none;
   }
 }
