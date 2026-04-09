@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import Spline from '@splinetool/react-spline'
 
+// Detectar móvil al inicio
+const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+
 // Optimized Project Card Component with improved structure - REESTRUCTURACIÓN COMPLETA
 const ProjectCard = memo(({ project, isHovered, onMouseEnter, onMouseMove, onMouseLeave, onClick, imageOffset, tilt, isFocused }) => {
   const [showDetails, setShowDetails] = useState(false)
@@ -107,6 +110,7 @@ export default function App() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [showHome, setShowHome] = useState(false)
   const [showAboutImage, setShowAboutImage] = useState(false)
+  const [showContactOverlay, setShowContactOverlay] = useState(false)
   const [showWorkPanel, setShowWorkPanel] = useState(false)
   const [exitButtonPosition, setExitButtonPosition] = useState({ x: 0, y: 0 })
   
@@ -189,18 +193,25 @@ export default function App() {
     if (section === 'ABOUT') {
       setShowAboutImage(prev => !prev)
       setShowWorkPanel(false)
+      setShowContactOverlay(false)
     } else if (section === 'WORK') {
       setShowWorkPanel(true)
       setShowAboutImage(false)
+      setShowContactOverlay(false)
       setTimeout(() => {
         if (exitButtonRef.current) {
           const rect = exitButtonRef.current.getBoundingClientRect()
           setExitButtonPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
         }
       }, 50)
+    } else if (section === 'CONTACT') {
+      setShowContactOverlay(prev => !prev)
+      setShowWorkPanel(false)
+      setShowAboutImage(false)
     } else {
       setShowWorkPanel(false)
       setShowAboutImage(false)
+      setShowContactOverlay(false)
     }
   }, [animateDot, currentAngle])
 
@@ -213,6 +224,10 @@ export default function App() {
 
   const closeAboutImage = () => {
     setShowAboutImage(false)
+  }
+  
+  const closeContactOverlay = () => {
+    setShowContactOverlay(false)
   }
 
   const getDotPosition = (angleDeg) => {
@@ -534,7 +549,10 @@ export default function App() {
         ...styles.splashScreen,
         ...(isTransitioning && styles.splashScreenExit)
       }}>
-        <div style={styles.container}>
+        <div style={{
+          ...styles.container,
+          padding: isMobile ? '20px' : '40px'
+        }}>
           <div 
             style={{
               ...styles.sceneWrapper,
@@ -569,7 +587,8 @@ export default function App() {
               ...styles.enter,
               ...(hover && styles.enterHover),
               ...(active && styles.enterActive),
-              ...(isTransitioning && styles.enterExit)
+              ...(isTransitioning && styles.enterExit),
+              transform: isMobile ? 'translateY(-60px)' : 'translateY(-125px)'
             }}
           >
             ENTER
@@ -593,24 +612,42 @@ export default function App() {
         )}
 
         {/* Top-left logo + name */}
-        <div style={styles.logoArea}>
+        <div style={{
+          ...styles.logoArea,
+          top: isMobile ? '20px' : '40px',
+          left: isMobile ? '20px' : '75px'
+        }}>
           <img src="/A.png" alt="Logo" style={styles.logoImage} />
           <span style={styles.logoName}>Annya Fraysheht</span>
         </div>
         
         {/* Top-center headline */}
-        <div style={styles.headline}>
+        <div style={{
+          ...styles.headline,
+          fontSize: isMobile ? '11px' : '13px',
+          whiteSpace: isMobile ? 'normal' : 'nowrap',
+          padding: isMobile ? '0 20px' : '0'
+        }}>
           3D Artist specialized in Hard Surface / Real-Time and Digital Experiences
         </div>
         
         {/* Top-right availability */}
-        <div style={styles.availability}>
+        <div style={{
+          ...styles.availability,
+          right: isMobile ? '20px' : '64px',
+          top: isMobile ? '20px' : '38px'
+        }}>
           <div style={styles.greenDot}></div>
           <span style={styles.availabilityText}>Currently available for new projects</span>
         </div>
         
         {/* Bottom-left description */}
-        <div style={styles.description}>
+        <div style={{
+          ...styles.description,
+          left: isMobile ? '20px' : '80px',
+          bottom: isMobile ? '40px' : '120px',
+          maxWidth: isMobile ? '90%' : '440px'
+        }}>
           <p style={styles.descLine}>Exploring form, motion and interaction through 3D</p>
           <p style={styles.descLine}>Where structure meets motion in real-time 3D experiences</p>
           <p style={styles.descLine}>Creating digital worlds driven by form, light and movement</p>
@@ -620,7 +657,10 @@ export default function App() {
         <div className="circle-nav-container" style={{
           ...styles.navWrapper,
           ...(showWorkPanel && styles.navWrapperDimmed),
-          ...(focusedCard && styles.navWrapperHidden)
+          ...(focusedCard && styles.navWrapperHidden),
+          right: isMobile ? '20px' : '110px',
+          top: isMobile ? '60%' : '70%',
+          transform: `translateY(-50%) scale(${isMobile ? 0.75 : 1})`
         }}>
           <div style={styles.circleContainer}>
             <svg width="260" height="260" viewBox="0 0 260 260" style={styles.svgCircle}>
@@ -693,6 +733,63 @@ export default function App() {
           </div>
         </div>
 
+        {/* CONTACT Overlay - WITH EMAIL AND PHONE INSIDE THE IMAGE */}
+        <div style={{
+          ...styles.contactOverlay,
+          ...(showContactOverlay ? styles.contactOverlayVisible : styles.contactOverlayHidden)
+        }}>
+          <div style={styles.contactContainer}>
+            {/* Close button */}
+            <button 
+              onClick={closeContactOverlay}
+              style={styles.contactCloseButton}
+              className="contact-close-button"
+            >
+              ✕
+            </button>
+            
+            {/* Contact Image wrapper */}
+            <div style={styles.contactImageWrapper} className="contact-image-wrapper">
+              <img src="/contact.png" alt="Contact" style={styles.contactImage} />
+              
+              {/* Contact Info - Email and Phone (inside the image) */}
+              <div style={styles.contactInfoContainer}>
+                <a href="mailto:annya.frayshehd@gmail.com" style={styles.contactEmail} className="contact-email">
+                  annya.frayshehd@gmail.com
+                </a>
+                <a href="tel:+573045658688" style={styles.contactPhone} className="contact-phone">
+                  +57 304 565 8688
+                </a>
+              </div>
+              
+              {/* Social Buttons Container (inside the image) */}
+              <div style={styles.socialButtonsContainer}>
+                {/* Instagram Button */}
+                <a 
+                  href="https://www.instagram.com/YOUR_INSTAGRAM_USERNAME/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={styles.socialButton}
+                  className="social-button"
+                >
+                  <img src="/instagram.png" alt="Instagram" style={styles.socialIcon} />
+                </a>
+                
+                {/* LinkedIn Button */}
+                <a 
+                  href="https://www.linkedin.com/in/YOUR_LINKEDIN_USERNAME/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={styles.socialButton}
+                  className="social-button"
+                >
+                  <img src="/linkedin.png" alt="LinkedIn" style={styles.socialIcon} />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* WORK Panel */}
         <div style={{
           ...styles.workPanel,
@@ -711,7 +808,10 @@ export default function App() {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            <div style={styles.projectsContainer}>
+            <div style={{
+              ...styles.projectsContainer,
+              padding: isMobile ? '20px' : '20px 40px'
+            }}>
               {projects.map((project) => (
                 <ProjectCard
                   key={project.id}
@@ -764,8 +864,15 @@ export default function App() {
             </button>
             
             {/* Scrollable content */}
-            <div style={styles.immersiveScrollContainer}>
-              <div style={styles.immersiveContent}>
+            <div style={{
+              ...styles.immersiveScrollContainer,
+              padding: isMobile ? '40px 20px' : '80px 60px'
+            }}>
+              <div style={{
+                ...styles.immersiveContent,
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '40px' : '80px'
+              }}>
                 {/* Left side - Gallery */}
                 <div style={styles.immersiveMedia}>
                   {/* Main preview - HERO IMAGE with contain for id 4 */}
@@ -847,17 +954,23 @@ export default function App() {
                   )}
                 </div>
                 
-                {/* Right side - Text panel WITH TWO VIDEOS STACKED */}
+                {/* Right side - Text panel WITH IMPROVED HIERARCHY AND SPACING */}
                 <div style={styles.immersiveText}>
+                  {/* HEADER SECTION */}
                   <div style={styles.textHeaderGroup}>
-                    <h1 style={styles.immersiveTitle}>{focusedCard.title}</h1>
+                    <h1 style={{
+                      ...styles.immersiveTitle,
+                      fontSize: isMobile ? '32px' : '72px'
+                    }}>{focusedCard.title}</h1>
                     <p style={styles.immersiveCategory}>{focusedCard.category}</p>
                   </div>
                   
+                  {/* DESCRIPTION SECTION - More readable */}
                   <div style={styles.immersiveDescription}>
                     <p>{focusedCard.fullDescription}</p>
                   </div>
                   
+                  {/* METADATA SECTION - Reorganized with better spacing */}
                   <div style={styles.immersiveDetails}>
                     <div style={styles.immersiveDetailItem}>
                       <span style={styles.immersiveDetailLabel}>Client</span>
@@ -873,13 +986,14 @@ export default function App() {
                     </div>
                   </div>
                   
+                  {/* TAGS SECTION - Better separation */}
                   <div style={styles.immersiveTags}>
                     {focusedCard.tags.map((tag, idx) => (
                       <span key={idx} style={styles.immersiveTag}>{tag}</span>
                     ))}
                   </div>
                   
-                  {/* Project URL link */}
+                  {/* CTA SECTION - Independent and distinct */}
                   {focusedCard.projectUrl && (
                     <div style={styles.immersiveProjectUrl}>
                       <a href={focusedCard.projectUrl} target="_blank" rel="noopener noreferrer" style={styles.immersiveProjectUrlLink}>
@@ -888,65 +1002,68 @@ export default function App() {
                     </div>
                   )}
                   
-                  {/* TWO VIDEOS SECTION - one below the other */}
-                  {focusedCard.videos && focusedCard.videos.length > 0 ? (
-                    focusedCard.videos.map((videoSrc, idx) => (
-                      <div key={idx} style={styles.rightPanelVideoContainer}>
-                        <div style={styles.rightPanelVideoWrapper}>
-                          {videoSrc.endsWith('.webp') ? (
-                            <img
-                              src={videoSrc}
-                              alt={`Animation ${idx + 1}`}
-                              style={{
-                                ...styles.rightPanelVideo,
-                                objectFit: "contain",
-                                background: "transparent"
-                              }}
-                            />
-                          ) : (
-                            <video
-                              src={videoSrc}
-                              autoPlay
-                              loop
-                              muted
-                              playsInline
-                              preload="auto"
-                              style={{
-                                ...styles.rightPanelVideo,
-                                objectFit: "contain",
-                                background: "transparent"
-                              }}
-                            />
+                  {/* VIDEO SECTION - Grouped with clear visual separation */}
+                  <div style={styles.videoSection}>
+                    {focusedCard.videos && focusedCard.videos.length > 0 ? (
+                      focusedCard.videos.map((videoSrc, idx) => (
+                        <div key={idx} style={{
+                          ...styles.rightPanelVideoContainer,
+                          marginTop: idx === 0 ? '0' : '32px'
+                        }}>
+                          <div style={styles.rightPanelVideoWrapper}>
+                            {videoSrc.endsWith('.webp') ? (
+                              <img
+                                src={videoSrc}
+                                alt={`Animation ${idx + 1}`}
+                                style={{
+                                  ...styles.rightPanelVideo,
+                                  objectFit: "contain",
+                                  background: "transparent"
+                                }}
+                              />
+                            ) : (
+                              <video
+                                src={videoSrc}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                preload="auto"
+                                style={{
+                                  ...styles.rightPanelVideo,
+                                  objectFit: "contain",
+                                  background: "transparent"
+                                }}
+                              />
+                            )}
+                          </div>
+                          {focusedCard.id !== 2 && (
+                            <div style={styles.rightPanelVideoCaption}>
+                              {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"} {idx === 0 ? "(Walkthrough)" : idx === 1 ? "(Detail)" : "(Animation)"}
+                            </div>
                           )}
                         </div>
-                        {focusedCard.id !== 2 && (
-                          <div style={styles.rightPanelVideoCaption}>
-                            {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"} {idx === 0 ? "(Walkthrough)" : idx === 1 ? "(Detail)" : "(Animation)"}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : focusedCard.video ? (
-                    <div style={styles.rightPanelVideoContainer}>
-                      <div style={styles.rightPanelVideoWrapper}>
-                        <video
-                          src={focusedCard.video}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          preload="auto"
-                          style={{
-                            ...styles.rightPanelVideo,
-                            objectFit: "contain",
-                            background: "transparent"
-                          }}
-                        />
-                      
+                      ))
+                    ) : focusedCard.video ? (
+                      <div style={styles.rightPanelVideoContainer}>
+                        <div style={styles.rightPanelVideoWrapper}>
+                          <video
+                            src={focusedCard.video}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            preload="auto"
+                            style={{
+                              ...styles.rightPanelVideo,
+                              objectFit: "contain",
+                              background: "transparent"
+                            }}
+                          />
                         </div>
-                      
-                    </div>
-                  ) : null}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>
@@ -985,7 +1102,6 @@ const styles = {
     justifyContent: 'center',
     gap: '48px',
     margin: 0,
-    padding: '40px',
     overflow: 'hidden',
     position: 'relative'
   },
@@ -1052,7 +1168,6 @@ const styles = {
     border: 'none',
     textAlign: 'center',
     zIndex: 20,
-    transform: 'translateY(-125px)',
     pointerEvents: 'none',
     transition: 'all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1)',
     textShadow: '0 0 8px rgba(0, 150, 255, 0.3), 0 0 2px rgba(255,255,255,0.5)'
@@ -1069,7 +1184,6 @@ const styles = {
   },
   enterExit: {
     opacity: 0,
-    transform: 'translateY(-145px)',
     filter: 'blur(4px)',
     transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
     pointerEvents: 'none'
@@ -1110,8 +1224,6 @@ const styles = {
   
   logoArea: {
     position: 'absolute',
-    top: '40px',
-    left: '75px',
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
@@ -1146,13 +1258,11 @@ const styles = {
     width: '100%',
     lineHeight: 1.4,
     zIndex: 10,
-    whiteSpace: 'nowrap'
+    textAlign: 'center'
   },
   
   availability: {
     position: 'absolute',
-    top: '38px',
-    right: '64px',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
@@ -1181,9 +1291,6 @@ const styles = {
   
   description: {
     position: 'absolute',
-    left: '80px',
-    bottom: '120px',
-    maxWidth: '440px',
     zIndex: 10
   },
   descLine: {
@@ -1199,14 +1306,12 @@ const styles = {
   
   navWrapper: {
     position: 'absolute',
-    right: '110px',
-    top: '70%',
-    transform: 'translateY(-50%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     zIndex: 10,
-    transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+    transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    transformOrigin: 'center'
   },
   navWrapperDimmed: {
     opacity: 0.25
@@ -1311,6 +1416,132 @@ const styles = {
     outline: 'none'
   },
 
+  // Contact Overlay Styles - Todo dentro de la imagen
+  contactOverlay: {
+    position: 'fixed',
+    top: '50%',
+    left: '70%',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 20,
+    transition: 'opacity 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1)',
+    width: 'auto',
+    maxWidth: '90vw',
+    maxHeight: '90vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  contactOverlayVisible: {
+    opacity: 1,
+    transform: 'translate(-50%, -50%) scale(1)'
+  },
+  contactOverlayHidden: {
+    opacity: 0,
+    transform: 'translate(-50%, -50%) scale(0.95)',
+    pointerEvents: 'none'
+  },
+  contactContainer: {
+    position: 'relative',
+    display: 'inline-block',
+    width: 'auto',
+    height: 'auto'
+  },
+  contactCloseButton: {
+    position: 'absolute',
+    top: '10%',
+    right: '5%',
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'rgba(13, 19, 33, 0.85)',
+    border: '1px solid rgba(240, 235, 216, 0.3)',
+    color: '#f0ebd8',
+    fontSize: '16px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.7,
+    transition: 'all 0.2s ease',
+    backdropFilter: 'blur(6px)',
+    fontFamily: 'monospace',
+    zIndex: 25,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+  },
+  contactImageWrapper: {
+    position: 'relative',
+    display: 'inline-block'
+  },
+  contactImage: {
+    maxWidth: 'min(85vw, 370px)',
+    width: 'auto',
+    maxHeight: '85vh',
+    height: 'auto',
+    objectFit: 'contain',
+    display: 'block'
+  },
+  // Contact Info - Posicionado dentro de la imagen
+  contactInfoContainer: {
+    position: 'absolute',
+    bottom: '15%',
+    left: '0',
+    right: '0',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '95px',
+    zIndex: 22,
+    padding: '0 70px'
+  },
+  contactEmail: {
+    fontFamily: "'Source Code Pro', monospace",
+    fontWeight: 300,
+    fontSize: '15px',
+    letterSpacing: '0.03em',
+    color: '#f0ebd8',
+    textDecoration: 'none',
+    transition: 'all 0.3s ease',
+    opacity: 0.85,
+    textAlign: 'center'
+  },
+  contactPhone: {
+    fontFamily: "'Source Code Pro', monospace",
+    fontWeight: 1,
+    fontSize: '15px',
+    letterSpacing: '0.03em',
+    color: '#f0ebd8',
+    textDecoration: 'none',
+    transition: 'all 0.3s ease',
+    opacity: 0.85,
+    textAlign: 'center'
+  },
+  // Social Buttons - Posicionado dentro de la imagen
+  socialButtonsContainer: {
+    position: 'absolute',
+    bottom: '35%',
+    left: '0',
+    right: '0',
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '14px',
+    zIndex: 22
+  },
+  socialButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textDecoration: 'none',
+    transition: 'all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1.05)'
+  },
+  socialIcon: {
+    width: 'clamp(165px, 6vw, 40px)',
+    height: 'auto',
+    objectFit: 'contain',
+    filter: 'brightness(0.9)',
+    transition: 'all 0.3s ease'
+  },
+
   workPanel: {
     position: 'fixed',
     top: 0,
@@ -1354,14 +1585,12 @@ const styles = {
   projectsContainer: {
     display: 'flex',
     gap: '30px',
-    padding: '20px 40px',
     alignItems: 'center',
     justifyContent: 'flex-start',
     minHeight: 'min-content',
     flexWrap: 'nowrap'
   },
   
-  // NUEVOS ESTILOS REESTRUCTURADOS PARA CARDS
   projectCard: {
     flex: '0 0 auto',
     width: '360px',
@@ -1405,7 +1634,6 @@ const styles = {
     transition: 'all 0.4s ease'
   },
   
-  // NUEVO: Overlay sobre la imagen
   imageOverlay: {
     position: 'absolute',
     bottom: 0,
@@ -1453,7 +1681,6 @@ const styles = {
     transition: 'opacity 0.4s ease'
   },
   
-  // NUEVO: Panel flotante
   floatingPanel: {
     position: 'absolute',
     bottom: '-20px',
@@ -1619,7 +1846,6 @@ const styles = {
     overflowY: 'auto',
     overflowX: 'hidden',
     scrollBehavior: 'smooth',
-    padding: '80px 60px',
     boxSizing: 'border-box'
   },
   immersiveContent: {
@@ -1627,7 +1853,6 @@ const styles = {
     width: '100%',
     maxWidth: '1400px',
     margin: '0 auto',
-    gap: '80px',
     animation: 'contentFloatIn 0.6s cubic-bezier(0.2, 0.95, 0.4, 1)'
   },
   immersiveMedia: {
@@ -1717,12 +1942,13 @@ const styles = {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: '32px',
+    gap: '40px',
     paddingTop: '12px'
   },
   textHeaderGroup: {
-    borderBottom: '1px solid rgba(240, 235, 216, 0.12)',
-    paddingBottom: '20px'
+    borderBottom: '1px solid rgba(240, 235, 216, 0.08)',
+    paddingBottom: '24px',
+    marginBottom: '4px'
   },
   immersiveTitle: {
     fontFamily: "'Source Code Pro', monospace",
@@ -1746,20 +1972,21 @@ const styles = {
     opacity: 0.9
   },
   immersiveDescription: {
-    marginTop: '4px',
-    lineHeight: 1.7,
+    marginTop: '0px',
+    lineHeight: 1.75,
+    fontSize: '15px',
+    maxWidth: '520px',
     fontFamily: "'Source Code Pro', monospace",
     fontWeight: 300,
-    fontSize: '16px',
     letterSpacing: '0.02em',
     color: '#f0ebd8',
-    opacity: 0.85
+    opacity: 0.9
   },
   immersiveDetails: {
     display: 'flex',
-    gap: '64px',
-    paddingTop: '8px',
-    borderTop: '1px solid rgba(240, 235, 216, 0.06)',
+    gap: '48px',
+    paddingTop: '16px',
+    borderTop: '1px solid rgba(240, 235, 216, 0.05)',
     marginTop: '8px'
   },
   immersiveDetailItem: {
@@ -1786,8 +2013,8 @@ const styles = {
   immersiveTags: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '16px',
-    marginTop: '12px'
+    gap: '12px',
+    marginTop: '8px'
   },
   immersiveTag: {
     fontFamily: "'Source Code Pro', monospace",
@@ -1803,7 +2030,7 @@ const styles = {
     transition: 'all 0.3s ease'
   },
   immersiveProjectUrl: {
-    marginTop: '12px'
+    marginTop: '20px'
   },
   immersiveProjectUrlLink: {
     fontFamily: "'Source Code Pro', monospace",
@@ -1817,9 +2044,13 @@ const styles = {
     padding: '8px 0',
     borderBottom: '1px solid rgba(94, 156, 250, 0.3)'
   },
+  videoSection: {
+    marginTop: '20px',
+    paddingTop: '20px',
+    borderTop: '1px solid rgba(240, 235, 216, 0.06)'
+  },
   rightPanelVideoContainer: {
-    marginTop: '24px',
-    marginBottom: '8px',
+    marginBottom: '12px',
     width: '100%'
   },
   rightPanelVideoWrapper: {
@@ -1961,6 +2192,78 @@ styleSheet.textContent = `
   .right-panel-video-wrapper:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Contact Image Bloom Effect on Hover */
+  .contact-image-wrapper:hover {
+    filter: drop-shadow(0 0 20px rgba(94, 156, 250, 0.5)) drop-shadow(0 0 40px rgba(94, 156, 250, 0.3));
+    transform: scale(1.02);
+  }
+  
+  /* Social Button Hover Effects */
+  .social-button {
+    transition: all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1.05) !important;
+  }
+  
+  .social-button:hover {
+    transform: scale(1.1) !important;
+  }
+  
+  .social-button:hover img {
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(240, 235, 216, 0.8)) !important;
+  }
+  
+  /* Contact Info Hover Effects */
+  .contact-email:hover, .contact-phone:hover {
+    opacity: 1 !important;
+    color: #5e9cfa !important;
+    text-shadow: 0 0 8px rgba(94, 156, 250, 0.4) !important;
+  }
+  
+  /* Contact close button hover */
+  .contact-close-button:hover {
+    opacity: 1 !important;
+    transform: scale(1.1) !important;
+    background: rgba(13, 19, 33, 1) !important;
+    border-color: rgba(240, 235, 216, 0.7) !important;
+    box-shadow: 0 0 15px rgba(94, 156, 250, 0.3) !important;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .contact-close-button {
+      top: 3% !important;
+      right: 3% !important;
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 14px !important;
+    }
+    
+    .contact-email, .contact-phone {
+      font-size: 10px !important;
+    }
+    
+    .social-buttons-container {
+      gap: 15px !important;
+    }
+    
+    .social-icon {
+      width: 30px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contact-email, .contact-phone {
+      font-size: 9px !important;
+    }
+    
+    .social-buttons-container {
+      gap: 12px !important;
+    }
+    
+    .social-icon {
+      width: 25px !important;
+    }
   }
 `;
 document.head.appendChild(styleSheet);
