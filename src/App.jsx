@@ -1,4 +1,4 @@
-// App.jsx - Immersive expanded project view with TWO videos stacked vertically in right panel
+// App.jsx - Solo modificaciones en el JSX para mejorar mobile (estructura y estilos inline optimizados)
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import Spline from '@splinetool/react-spline'
 
@@ -648,9 +648,9 @@ export default function App() {
           bottom: isMobile ? '40px' : '120px',
           maxWidth: isMobile ? '90%' : '440px'
         }}>
-          <p style={styles.descLine}>Exploring form, motion and interaction through 3D</p>
-          <p style={styles.descLine}>Where structure meets motion in real-time 3D experiences</p>
-          <p style={styles.descLine}>Creating digital worlds driven by form, light and movement</p>
+          <p style={styles.descLine}>I approach every project with a production mindset, prioritizing clean topology, smart asset organization, and real-time performance to create environments that work in motion, not just in</p>
+          <p style={styles.descLine}>static frames. Each space is developed to stay visually strong, functionally consistent, and coherent across different angles and viewing distances.</p>
+          <p style={styles.descLine}>The result is a complete real-time experience where clarity, performance, and visual intent come together seamlessly.</p>
         </div>
         
         {/* Right side circular navigation */}
@@ -658,11 +658,16 @@ export default function App() {
           ...styles.navWrapper,
           ...(showWorkPanel && styles.navWrapperDimmed),
           ...(focusedCard && styles.navWrapperHidden),
-          right: isMobile ? '20px' : '110px',
-          top: isMobile ? '60%' : '70%',
-          transform: `translateY(-50%) scale(${isMobile ? 0.75 : 1})`
+          right: isMobile ? '50%' : '110px',
+          bottom: isMobile ? '30px' : 'auto',
+          top: isMobile ? 'auto' : '70%',
+          transform: isMobile ? 'translateX(50%) translateY(0)' : 'translateY(-50%)',
+          ...(isMobile && { position: 'fixed', margin: 0, padding: 0 })
         }}>
-          <div style={styles.circleContainer}>
+          <div style={{
+            ...styles.circleContainer,
+            transform: isMobile ? 'scale(0.65)' : 'scale(1)'
+          }}>
             <svg width="260" height="260" viewBox="0 0 260 260" style={styles.svgCircle}>
               <circle
                 cx="130"
@@ -717,32 +722,79 @@ export default function App() {
           </div>
         </div>
 
-        {/* ABOUT Image Overlay */}
+        {/* ABOUT Image Overlay - Mejorado para móvil */}
         <div style={{
           ...styles.aboutImageOverlay,
-          ...(showAboutImage ? styles.aboutImageVisible : styles.aboutImageHidden)
+          ...(showAboutImage ? styles.aboutImageVisible : styles.aboutImageHidden),
+          ...(isMobile && {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '320px',
+            zIndex: 25
+          })
         }}>
           <div style={styles.aboutImageContainer}>
             <button 
               onClick={closeAboutImage}
-              style={styles.closeButton}
+              style={{
+                ...styles.closeButton,
+                ...(isMobile && {
+                  top: '10px',
+                  right: '10px',
+                  width: '32px',
+                  height: '32px',
+                  fontSize: '16px',
+                  background: 'rgba(13, 19, 33, 0.9)'
+                })
+              }}
             >
               ✕
             </button>
-            <img src="/About.png" alt="About" style={styles.aboutImage} />
+            <img src="/About.png" alt="About" style={{
+              ...styles.aboutImage,
+              ...(isMobile && {
+                maxWidth: '100%',
+                width: '100%',
+                height: 'auto',
+                borderRadius: '16px'
+              })
+            }} />
           </div>
         </div>
 
-        {/* CONTACT Overlay - WITH EMAIL AND PHONE INSIDE THE IMAGE */}
+        {/* CONTACT Overlay - Mejorado para móvil */}
         <div style={{
           ...styles.contactOverlay,
-          ...(showContactOverlay ? styles.contactOverlayVisible : styles.contactOverlayHidden)
+          ...(showContactOverlay ? styles.contactOverlayVisible : styles.contactOverlayHidden),
+          ...(isMobile && {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '320px',
+            zIndex: 25
+          })
         }}>
           <div style={styles.contactContainer}>
             {/* Close button */}
             <button 
               onClick={closeContactOverlay}
-              style={styles.contactCloseButton}
+              style={{
+                ...styles.contactCloseButton,
+                ...(isMobile && {
+                  top: '8px',
+                  right: '8px',
+                  width: '28px',
+                  height: '28px',
+                  fontSize: '14px'
+                })
+              }}
               className="contact-close-button"
             >
               ✕
@@ -750,20 +802,46 @@ export default function App() {
             
             {/* Contact Image wrapper */}
             <div style={styles.contactImageWrapper} className="contact-image-wrapper">
-              <img src="/contact.png" alt="Contact" style={styles.contactImage} />
+              <img src="/contact.png" alt="Contact" style={{
+                ...styles.contactImage,
+                ...(isMobile && {
+                  maxWidth: '100%',
+                  width: '100%',
+                  height: 'auto'
+                })
+              }} />
               
               {/* Contact Info - Email and Phone (inside the image) */}
-              <div style={styles.contactInfoContainer}>
-                <a href="mailto:annya.frayshehd@gmail.com" style={styles.contactEmail} className="contact-email">
+              <div style={{
+                ...styles.contactInfoContainer,
+                ...(isMobile && {
+                  gap: '12px',
+                  padding: '0 16px',
+                  bottom: '12%'
+                })
+              }}>
+                <a href="mailto:annya.frayshehd@gmail.com" style={{
+                  ...styles.contactEmail,
+                  ...(isMobile && { fontSize: '11px' })
+                }} className="contact-email">
                   annya.frayshehd@gmail.com
                 </a>
-                <a href="tel:+573045658688" style={styles.contactPhone} className="contact-phone">
+                <a href="tel:+573045658688" style={{
+                  ...styles.contactPhone,
+                  ...(isMobile && { fontSize: '11px' })
+                }} className="contact-phone">
                   +57 304 565 8688
                 </a>
               </div>
               
               {/* Social Buttons Container (inside the image) */}
-              <div style={styles.socialButtonsContainer}>
+              <div style={{
+                ...styles.socialButtonsContainer,
+                ...(isMobile && {
+                  gap: '20px',
+                  bottom: '28%'
+                })
+              }}>
                 {/* Instagram Button */}
                 <a 
                   href="https://www.instagram.com/YOUR_INSTAGRAM_USERNAME/" 
@@ -772,7 +850,10 @@ export default function App() {
                   style={styles.socialButton}
                   className="social-button"
                 >
-                  <img src="/instagram.png" alt="Instagram" style={styles.socialIcon} />
+                  <img src="/instagram.png" alt="Instagram" style={{
+                    ...styles.socialIcon,
+                    ...(isMobile && { width: '28px' })
+                  }} />
                 </a>
                 
                 {/* LinkedIn Button */}
@@ -783,14 +864,17 @@ export default function App() {
                   style={styles.socialButton}
                   className="social-button"
                 >
-                  <img src="/linkedin.png" alt="LinkedIn" style={styles.socialIcon} />
+                  <img src="/linkedin.png" alt="LinkedIn" style={{
+                    ...styles.socialIcon,
+                    ...(isMobile && { width: '28px' })
+                  }} />
                 </a>
               </div>
             </div>
           </div>
         </div>
 
-        {/* WORK Panel */}
+        {/* WORK Panel - Mejorado para móvil */}
         <div style={{
           ...styles.workPanel,
           ...(showWorkPanel && !focusedCard && styles.workPanelVisible),
@@ -801,7 +885,11 @@ export default function App() {
             ref={scrollContainerRef}
             style={{
               ...styles.workPanelContent,
-              ...(focusedCard && styles.workPanelContentBlurred)
+              ...(focusedCard && styles.workPanelContentBlurred),
+              ...(isMobile && {
+                padding: '20px 0 20px 20px',
+                alignItems: 'flex-start'
+              })
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -810,7 +898,8 @@ export default function App() {
           >
             <div style={{
               ...styles.projectsContainer,
-              padding: isMobile ? '20px' : '20px 40px'
+              padding: isMobile ? '20px 0' : '20px 40px',
+              gap: isMobile ? '16px' : '30px'
             }}>
               {projects.map((project) => (
                 <ProjectCard
@@ -834,14 +923,22 @@ export default function App() {
             onClick={closeWorkPanel}
             style={{
               ...styles.workCloseButton,
-              ...(focusedCard && styles.workCloseButtonHidden)
+              ...(focusedCard && styles.workCloseButtonHidden),
+              ...(isMobile && {
+                bottom: '20px',
+                right: '20px',
+                opacity: 0.9
+              })
             }}
           >
-            <img src="/Exit Work.png" alt="Close" style={styles.workCloseIcon} />
+            <img src="/Exit Work.png" alt="Close" style={{
+              ...styles.workCloseIcon,
+              ...(isMobile && { width: '40px', height: '40px' })
+            }} />
           </button>
         </div>
 
-        {/* IMMERSIVE EXPANDED PROJECT VIEW */}
+        {/* IMMERSIVE EXPANDED PROJECT VIEW - Mejorado para móvil */}
         {focusedCard && (
           <div style={{
             ...styles.immersiveOverlay,
@@ -850,7 +947,16 @@ export default function App() {
             {/* Exit button */}
             <button 
               onClick={closeFocusedCard}
-              style={styles.immersiveCloseButton}
+              style={{
+                ...styles.immersiveCloseButton,
+                ...(isMobile && {
+                  top: '16px',
+                  right: '16px',
+                  width: '40px',
+                  height: '40px',
+                  opacity: 0.85
+                })
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.08)'
                 e.currentTarget.style.opacity = '1'
@@ -860,23 +966,29 @@ export default function App() {
                 e.currentTarget.style.opacity = '0.75'
               }}
             >
-              <img src="/Exit Work.png" alt="Close" style={styles.immersiveCloseIcon} />
+              <img src="/Exit Work.png" alt="Close" style={{
+                ...styles.immersiveCloseIcon,
+                ...(isMobile && { width: '36px', height: '36px' })
+              }} />
             </button>
             
             {/* Scrollable content */}
             <div style={{
               ...styles.immersiveScrollContainer,
-              padding: isMobile ? '40px 20px' : '80px 60px'
+              padding: isMobile ? '80px 16px 40px 16px' : '80px 60px'
             }}>
               <div style={{
                 ...styles.immersiveContent,
                 flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? '40px' : '80px'
+                gap: isMobile ? '32px' : '80px'
               }}>
                 {/* Left side - Gallery */}
                 <div style={styles.immersiveMedia}>
                   {/* Main preview - HERO IMAGE with contain for id 4 */}
-                  <div style={styles.immersiveImageArea}>
+                  <div style={{
+                    ...styles.immersiveImageArea,
+                    ...(isMobile && { borderRadius: '16px' })
+                  }}>
                     <img
                       src={focusedCard.image}
                       alt={focusedCard.title}
@@ -907,13 +1019,16 @@ export default function App() {
                         style={{
                           ...styles.immersiveAdditionalImageWrapper,
                           animationDelay: `${idx * 0.12}s`,
-                          marginTop: idx === 0 ? '32px' : (idx % 2 === 0 ? '48px' : '28px')
+                          marginTop: isMobile 
+                            ? (idx === 0 ? '20px' : (idx % 2 === 0 ? '28px' : '20px'))
+                            : (idx === 0 ? '32px' : (idx % 2 === 0 ? '48px' : '28px'))
                         }}
                         className="immersive-additional-image"
                       >
                         <div style={{
                           ...styles.immersiveAdditionalImage,
-                          height: heightVariants[variantIndex]
+                          height: isMobile ? 'auto' : heightVariants[variantIndex],
+                          ...(isMobile && { aspectRatio: '16 / 9', borderRadius: '12px' })
                         }}>
                           <img
                             src={img.src}
@@ -957,46 +1072,84 @@ export default function App() {
                 {/* Right side - Text panel WITH IMPROVED HIERARCHY AND SPACING */}
                 <div style={styles.immersiveText}>
                   {/* HEADER SECTION */}
-                  <div style={styles.textHeaderGroup}>
+                  <div style={{
+                    ...styles.textHeaderGroup,
+                    ...(isMobile && { paddingBottom: '16px', marginBottom: '0' })
+                  }}>
                     <h1 style={{
                       ...styles.immersiveTitle,
-                      fontSize: isMobile ? '32px' : '72px'
+                      fontSize: isMobile ? '28px' : '72px',
+                      marginBottom: isMobile ? '12px' : '20px'
                     }}>{focusedCard.title}</h1>
-                    <p style={styles.immersiveCategory}>{focusedCard.category}</p>
+                    <p style={{
+                      ...styles.immersiveCategory,
+                      fontSize: isMobile ? '11px' : '14px'
+                    }}>{focusedCard.category}</p>
                   </div>
                   
                   {/* DESCRIPTION SECTION - More readable */}
-                  <div style={styles.immersiveDescription}>
+                  <div style={{
+                    ...styles.immersiveDescription,
+                    fontSize: isMobile ? '13px' : '15px',
+                    lineHeight: isMobile ? 1.6 : 1.75
+                  }}>
                     <p>{focusedCard.fullDescription}</p>
                   </div>
                   
                   {/* METADATA SECTION - Reorganized with better spacing */}
-                  <div style={styles.immersiveDetails}>
+                  <div style={{
+                    ...styles.immersiveDetails,
+                    ...(isMobile && { 
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      gap: '24px',
+                      paddingTop: '12px'
+                    })
+                  }}>
                     <div style={styles.immersiveDetailItem}>
                       <span style={styles.immersiveDetailLabel}>Client</span>
-                      <span style={styles.immersiveDetailValue}>{focusedCard.client}</span>
+                      <span style={{
+                        ...styles.immersiveDetailValue,
+                        fontSize: isMobile ? '14px' : '17px'
+                      }}>{focusedCard.client}</span>
                     </div>
                     <div style={styles.immersiveDetailItem}>
                       <span style={styles.immersiveDetailLabel}>Year</span>
-                      <span style={styles.immersiveDetailValue}>{focusedCard.year}</span>
+                      <span style={{
+                        ...styles.immersiveDetailValue,
+                        fontSize: isMobile ? '14px' : '17px'
+                      }}>{focusedCard.year}</span>
                     </div>
                     <div style={styles.immersiveDetailItem}>
                       <span style={styles.immersiveDetailLabel}>Role</span>
-                      <span style={styles.immersiveDetailValue}>{focusedCard.role}</span>
+                      <span style={{
+                        ...styles.immersiveDetailValue,
+                        fontSize: isMobile ? '14px' : '17px'
+                      }}>{focusedCard.role}</span>
                     </div>
                   </div>
                   
                   {/* TAGS SECTION - Better separation */}
-                  <div style={styles.immersiveTags}>
+                  <div style={{
+                    ...styles.immersiveTags,
+                    gap: isMobile ? '8px' : '12px'
+                  }}>
                     {focusedCard.tags.map((tag, idx) => (
-                      <span key={idx} style={styles.immersiveTag}>{tag}</span>
+                      <span key={idx} style={{
+                        ...styles.immersiveTag,
+                        fontSize: isMobile ? '9px' : '12px',
+                        padding: isMobile ? '4px 12px' : '6px 20px'
+                      }}>{tag}</span>
                     ))}
                   </div>
                   
                   {/* CTA SECTION - Independent and distinct */}
                   {focusedCard.projectUrl && (
                     <div style={styles.immersiveProjectUrl}>
-                      <a href={focusedCard.projectUrl} target="_blank" rel="noopener noreferrer" style={styles.immersiveProjectUrlLink}>
+                      <a href={focusedCard.projectUrl} target="_blank" rel="noopener noreferrer" style={{
+                        ...styles.immersiveProjectUrlLink,
+                        fontSize: isMobile ? '11px' : '13px'
+                      }}>
                         VIEW PROJECT WEBSITE →
                       </a>
                     </div>
@@ -1008,9 +1161,12 @@ export default function App() {
                       focusedCard.videos.map((videoSrc, idx) => (
                         <div key={idx} style={{
                           ...styles.rightPanelVideoContainer,
-                          marginTop: idx === 0 ? '0' : '32px'
+                          marginTop: idx === 0 ? '0' : (isMobile ? '24px' : '32px')
                         }}>
-                          <div style={styles.rightPanelVideoWrapper}>
+                          <div style={{
+                            ...styles.rightPanelVideoWrapper,
+                            ...(isMobile && { borderRadius: '12px' })
+                          }}>
                             {videoSrc.endsWith('.webp') ? (
                               <img
                                 src={videoSrc}
@@ -1038,7 +1194,10 @@ export default function App() {
                             )}
                           </div>
                           {focusedCard.id !== 2 && (
-                            <div style={styles.rightPanelVideoCaption}>
+                            <div style={{
+                              ...styles.rightPanelVideoCaption,
+                              fontSize: isMobile ? '8px' : '10px'
+                            }}>
                               {focusedCard.software ? focusedCard.software.join(" - ") : "Unreal Engine - Blender"} {idx === 0 ? "(Walkthrough)" : idx === 1 ? "(Detail)" : "(Animation)"}
                             </div>
                           )}
