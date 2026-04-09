@@ -824,7 +824,7 @@ export default function App() {
                   ...styles.contactEmail,
                   ...(isMobile && { fontSize: '11px' })
                 }} className="contact-email">
-                  annya.frayshehd@gmail.com
+                  annya.frayshehtd@gmail.com
                 </a>
                 <a href="tel:+573045658688" style={{
                   ...styles.contactPhone,
