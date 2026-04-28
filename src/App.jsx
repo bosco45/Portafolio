@@ -844,7 +844,7 @@ export default function App() {
               }}>
                 {/* Instagram Button */}
                 <a 
-                  href="https://www.instagram.com/YOUR_INSTAGRAM_USERNAME/" 
+                  href="https://www.instagram.com/trinity3d.360/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={styles.socialButton}
@@ -858,7 +858,7 @@ export default function App() {
                 
                 {/* LinkedIn Button */}
                 <a 
-                  href="https://www.linkedin.com/in/YOUR_LINKEDIN_USERNAME/" 
+                  href="https://www.linkedin.com/in/annya-fraysheht/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={styles.socialButton}
