@@ -5,8 +5,30 @@ import Spline from '@splinetool/react-spline'
 // Detectar móvil al inicio
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
 
-// Componente ImageLightbox Mejorado
-const ImageLightbox = memo(({ images, currentIndex, onClose, onPrev, onNext, isMobile }) => {
+// Función para determinar el modo de imagen según proyecto e índice
+const getImageDisplayMode = (projectId, imageSrc = '', imageIndex = 0) => {
+  // Proyecto ORNAMENTAL (id 4) - siempre usar contain para preservar composición
+  if (projectId === 4) {
+    return { mode: 'contain', bg: true }
+  }
+  
+  // Imágenes de asset/mochila
+  if (imageSrc?.toLowerCase().includes('mochila') || 
+      imageSrc?.toLowerCase().includes('asset')) {
+    return { mode: 'contain', bg: true }
+  }
+  
+  // Para imágenes de detalle técnico (índice alto, captions con detail)
+  if (imageIndex >= 2 || imageSrc?.toLowerCase().includes('detail')) {
+    return { mode: 'contain', bg: true }
+  }
+  
+  // Por defecto: cinematic cover
+  return { mode: 'cover', bg: false }
+}
+
+// Componente ImageLightbox Mejorado - CON SISTEMA DE FORMATOS PREMIUM
+const ImageLightbox = memo(({ images, currentIndex, onClose, onPrev, onNext, isMobile, projectId }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose()
@@ -29,140 +51,106 @@ const ImageLightbox = memo(({ images, currentIndex, onClose, onPrev, onNext, isM
 
   const currentImage = images[currentIndex]
   
-  const isAssetImage = currentImage.src?.toLowerCase().includes('mochila') || 
-                       currentImage.src?.toLowerCase().includes('asset') ||
-                       currentImage.caption?.toLowerCase().includes('detail') ||
-                       currentImage.caption?.toLowerCase().includes('overview') ||
-                       currentImage.caption?.toLowerCase().includes('layout')
+  // Determinar el modo de visualización para el lightbox
+  const getLightboxMode = () => {
+    const src = currentImage.src || ''
+    const caption = currentImage.caption || ''
+    
+    // Proyecto ORNAMENTAL - tratamiento especial cinematográfico
+    if (projectId === 4) {
+      return { mode: 'ornamental', displayMode: 'contain', bgIntensity: 'high', centered: true }
+    }
+    
+    // Imágenes de asset/mochila
+    if (src.toLowerCase().includes('mochila') || 
+        src.toLowerCase().includes('asset') ||
+        caption.toLowerCase().includes('detail') ||
+        caption.toLowerCase().includes('layout')) {
+      return { mode: 'asset', displayMode: 'contain', bgIntensity: 'medium', centered: true }
+    }
+    
+    // Imágenes panorámicas (overview, walkthrough, vistas amplias)
+    if (caption.toLowerCase().includes('overview') || 
+        caption.toLowerCase().includes('walkthrough') ||
+        caption.toLowerCase().includes('view') ||
+        (projectId === 2 && currentIndex === 0)) {
+      return { mode: 'cinematic', displayMode: 'cover', bgIntensity: 'low', centered: false }
+    }
+    
+    // Escenas de ambiente / arquitectura
+    if (projectId === 1 || projectId === 3) {
+      return { mode: 'cinematic', displayMode: 'cover', bgIntensity: 'low', centered: false }
+    }
+    
+    // Por defecto: contain con fondo elegante
+    return { mode: 'standard', displayMode: 'contain', bgIntensity: 'medium', centered: true }
+  }
+  
+  const lightboxConfig = getLightboxMode()
+  const isOrnamental = lightboxConfig.mode === 'ornamental'
+  const isCinematic = lightboxConfig.mode === 'cinematic'
+  const isAsset = lightboxConfig.mode === 'asset'
+  const useContain = lightboxConfig.displayMode === 'contain'
+  const bgIntensity = lightboxConfig.bgIntensity
 
   return (
-    <div 
-      className="lightbox-overlay"
-      style={styles.lightboxOverlay}
-      onClick={onClose}
-    >
-      <div className="lightbox-bg-glow" style={styles.lightboxBackgroundGlow} />
+    <div className="lightbox-premium-container" onClick={onClose}>
+      <div className={`lightbox-premium-bg bg-${bgIntensity}`} />
       
-      <div className="lightbox-header" style={styles.lightboxHeader}>
-        <span className="lightbox-counter" style={styles.lightboxCounter}>
+      <div className="lightbox-premium-header">
+        <span className="lightbox-premium-counter">
           {currentIndex + 1} / {images.length}
         </span>
-        <button 
-          className="lightbox-close-button"
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
-          style={styles.lightboxCloseButton}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.1)'
-            e.currentTarget.style.background = 'rgba(13, 19, 33, 0.95)'
-            e.currentTarget.style.borderColor = 'rgba(240, 235, 216, 0.3)'
-            e.currentTarget.style.opacity = '1'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.background = 'rgba(13, 19, 33, 0.5)'
-            e.currentTarget.style.borderColor = 'rgba(240, 235, 216, 0.12)'
-            e.currentTarget.style.opacity = '0.75'
-          }}
-          aria-label="Close lightbox"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0ebd8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
+        <button className="lightbox-premium-close" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
 
-      <div 
-        style={styles.lightboxMainContainer}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="lightbox-premium-main" onClick={(e) => e.stopPropagation()}>
         <button 
-          className="lightbox-nav-button lightbox-prev-button"
-          onClick={(e) => { e.stopPropagation(); onPrev(); }}
-          style={{
-            ...styles.lightboxNavButton,
-            ...styles.lightboxPrevButton,
-            opacity: images.length <= 1 ? 0 : undefined,
-            pointerEvents: images.length <= 1 ? 'none' : undefined
-          }}
-          onMouseEnter={(e) => {
-            if (images.length > 1) {
-              e.currentTarget.style.opacity = '1'
-              e.currentTarget.style.background = 'rgba(240, 235, 216, 0.12)'
-              e.currentTarget.style.borderColor = 'rgba(240, 235, 216, 0.25)'
-              e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (images.length > 1) {
-              e.currentTarget.style.opacity = '0.4'
-              e.currentTarget.style.background = 'rgba(240, 235, 216, 0.03)'
-              e.currentTarget.style.borderColor = 'rgba(240, 235, 216, 0.1)'
-              e.currentTarget.style.transform = 'translateY(-50%) scale(1)'
-            }
-          }}
-          aria-label="Previous image"
+          className="lightbox-premium-nav lightbox-premium-prev" 
+          onClick={onPrev} 
+          disabled={images.length <= 1}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0ebd8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
 
-        <div 
-          className={`lightbox-image-canvas ${isAssetImage ? 'lightbox-image-canvas-asset' : ''}`}
-          style={{
-            ...styles.lightboxImageCanvas,
-            ...(isAssetImage && styles.lightboxImageCanvasAsset)
-          }}
-        >
+        <div className={`lightbox-premium-canvas 
+          ${useContain ? 'canvas-contain' : 'canvas-cover'}
+          ${isCinematic ? 'canvas-cinematic' : ''}
+          ${isOrnamental ? 'canvas-ornamental' : ''}
+          ${isAsset ? 'canvas-asset' : ''}
+        `}>
           <img
             src={currentImage.src}
             alt={currentImage.caption || `Image ${currentIndex + 1}`}
-            className={`lightbox-image ${isAssetImage ? 'lightbox-image-asset' : ''}`}
-            style={{
-              ...styles.lightboxImage,
-              ...(isAssetImage && styles.lightboxImageAsset)
-            }}
-            key={currentImage.src}
+            className={`lightbox-premium-img 
+              ${useContain ? 'img-contain' : 'img-cover'}
+              ${isOrnamental ? 'img-ornamental' : ''}
+            `}
+            style={isOrnamental ? { objectPosition: 'center 45%' } : {}}
           />
         </div>
 
         <button 
-          className="lightbox-nav-button lightbox-next-button"
-          onClick={(e) => { e.stopPropagation(); onNext(); }}
-          style={{
-            ...styles.lightboxNavButton,
-            ...styles.lightboxNextButton,
-            opacity: images.length <= 1 ? 0 : undefined,
-            pointerEvents: images.length <= 1 ? 'none' : undefined
-          }}
-          onMouseEnter={(e) => {
-            if (images.length > 1) {
-              e.currentTarget.style.opacity = '1'
-              e.currentTarget.style.background = 'rgba(240, 235, 216, 0.12)'
-              e.currentTarget.style.borderColor = 'rgba(240, 235, 216, 0.25)'
-              e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (images.length > 1) {
-              e.currentTarget.style.opacity = '0.4'
-              e.currentTarget.style.background = 'rgba(240, 235, 216, 0.03)'
-              e.currentTarget.style.borderColor = 'rgba(240, 235, 216, 0.1)'
-              e.currentTarget.style.transform = 'translateY(-50%) scale(1)'
-            }
-          }}
-          aria-label="Next image"
+          className="lightbox-premium-nav lightbox-premium-next" 
+          onClick={onNext} 
+          disabled={images.length <= 1}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0ebd8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
       </div>
 
       {currentImage.caption && (
-        <div className="lightbox-caption" style={styles.lightboxCaption}>
-          <span className="lightbox-caption-text" style={styles.lightboxCaptionText}>{currentImage.caption}</span>
+        <div className="lightbox-premium-caption">
+          <span>{currentImage.caption}</span>
         </div>
       )}
     </div>
@@ -660,6 +648,7 @@ export default function App() {
           onPrev={prevImage}
           onNext={nextImage}
           isMobile={isMobile}
+          projectId={focusedCard.id}
         />
       )}
 
@@ -775,124 +764,127 @@ export default function App() {
           </button>
         </div>
 
+        {/* ============ VISTA INMERSIVA DEL PROYECTO - CON SISTEMA DE FORMATOS DE IMAGEN ============ */}
         {focusedCard && (
-          <div style={{ ...styles.immersiveOverlay, ...(focusTransitioning ? styles.immersiveOverlayClosing : styles.immersiveOverlayOpen) }}>
-            <div style={styles.immersiveHeader}>
-              <button onClick={closeFocusedCard} style={styles.immersiveCloseButton} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.background = 'rgba(13, 19, 33, 0.8)' }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(13, 19, 33, 0.5)' }}>
-                <span style={styles.closeIcon}>×</span>
-              </button>
-            </div>
+          <div className="project-master-view">
+            <div className="project-overlay" />
+            
+            <button className="project-close-btn" onClick={closeFocusedCard}>
+              <span>×</span>
+            </button>
 
-            <div className="landscape-layout" style={{ ...styles.landscapeLayout, flexDirection: isMobile ? 'column' : 'row', padding: isMobile ? '80px 20px 40px' : '100px 60px 60px' }}>
+            <div className="project-layout">
               
-              <div className="gallery-container" style={styles.galleryContainer}>
-                <div className="hero-image-wrapper clickable-image" style={{...styles.heroImageWrapper, cursor: 'pointer'}} onClick={() => openLightbox(0)} onMouseEnter={(e) => { const hint = e.currentTarget.querySelector('.view-hint'); if (hint) hint.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.005)' }} onMouseLeave={(e) => { const hint = e.currentTarget.querySelector('.view-hint'); if (hint) hint.style.opacity = '0'; e.currentTarget.style.transform = 'scale(1)' }}>
-                  <img src={focusedCard.image} alt={focusedCard.title} style={{ ...styles.heroImage, objectFit: focusedCard.id === 4 ? 'contain' : 'cover', background: focusedCard.id === 4 ? '#0a0f16' : 'transparent' }} />
-                  <div style={styles.heroImageGlow} />
-                  <div className="view-hint" style={styles.viewHint}>VIEW</div>
-                </div>
-
-                <div className="secondary-images-grid" style={styles.secondaryImagesGrid}>
-                  {focusedCard.additionalImages?.map((img, idx) => (
-                    <div key={img.id} className="secondary-image-card clickable-image" style={{ ...styles.secondaryImageCard, animationDelay: `${idx * 0.1}s`, cursor: 'pointer' }} onClick={() => openLightbox(idx + 1)} onMouseEnter={(e) => { const hint = e.currentTarget.querySelector('.view-hint-small'); if (hint) hint.style.opacity = '1' }} onMouseLeave={(e) => { const hint = e.currentTarget.querySelector('.view-hint-small'); if (hint) hint.style.opacity = '0' }}>
-                      <img src={img.src} alt={img.caption} style={{ ...styles.secondaryImage, objectFit: focusedCard.id === 4 ? 'contain' : 'cover', background: focusedCard.id === 4 ? '#0a0f16' : 'transparent' }} />
-                      <div className="secondary-image-overlay" style={styles.secondaryImageOverlay}>
-                        <span style={styles.secondaryImageCaption}>{img.caption}</span>
+              {/* COLUMNA IZQUIERDA - GALERÍA */}
+              <div className="project-gallery">
+                {/* Hero Image con formato inteligente */}
+                {(() => {
+                  const heroMode = getImageDisplayMode(focusedCard.id, focusedCard.image, 0)
+                  const isHeroContain = heroMode.mode === 'contain'
+                  return (
+                    <div 
+                      className={`gallery-hero ${isHeroContain ? 'hero-contain-mode' : 'hero-cover-mode'}`}
+                      onClick={() => openLightbox(0)}
+                    >
+                      <div className="hero-image-wrapper">
+                        <img 
+                          src={focusedCard.image} 
+                          alt={focusedCard.title}
+                          className={`hero-img ${isHeroContain ? 'img-contain' : 'img-cover'}`}
+                        />
                       </div>
-                      <div className="view-hint-small" style={styles.viewHintSmall}>VIEW</div>
+                      <div className="hero-hint">VIEW</div>
                     </div>
-                  ))}
+                  )
+                })()}
+
+                {/* Secondary Images Grid con formato por imagen */}
+                <div className="gallery-grid">
+                  {focusedCard.additionalImages?.map((img, idx) => {
+                    const imgMode = getImageDisplayMode(focusedCard.id, img.src, idx + 1)
+                    const isContain = imgMode.mode === 'contain'
+                    return (
+                      <div 
+                        key={img.id} 
+                        className={`grid-item ${isContain ? 'grid-contain-mode' : 'grid-cover-mode'}`}
+                        onClick={() => openLightbox(idx + 1)}
+                        style={{ animationDelay: `${idx * 0.1}s` }}
+                      >
+                        <div className="grid-image-wrapper">
+                          <img 
+                            src={img.src} 
+                            alt={img.caption}
+                            className={`grid-img ${isContain ? 'img-contain' : 'img-cover'}`}
+                          />
+                        </div>
+                        <div className="grid-overlay">
+                          <span>{img.caption}</span>
+                        </div>
+                        <div className="grid-hint">VIEW</div>
+                      </div>
+                    )
+                  })}
                 </div>
 
+                {/* Video Asset Preview */}
                 {focusedCard.videos?.length > 0 && (
-                  <div style={styles.videoContainer}>
-                    <div style={styles.assetShowcaseHeader}>
-                      <span style={styles.assetShowcaseLabel}>ASSET PREVIEW</span>
-                      <span style={styles.assetShowcaseLine}></span>
-                    </div>
-
-                    <div className="video-wrapper" style={styles.videoWrapper}>
-                      <video src={focusedCard.videos[0]} autoPlay loop muted playsInline preload="auto" style={styles.videoPlayer} />
+                  <div className="gallery-video">
+                    <div className="video-container">
+                      <video 
+                        src={focusedCard.videos[0]} 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        preload="auto"
+                        className="video-player"
+                      />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* PANEL DE INFORMACIÓN - CON DESCRIPCIÓN COMPLETA Y SCROLL - VERSIÓN PREMIUM */}
-              <div className="info-panel" style={styles.infoPanel}>
-                <div className="info-content" style={styles.infoContent}>
-                  {/* Glow ornamental */}
-                  <div style={styles.infoGlowTop} />
-                  <div style={styles.infoGlowCorner} />
-
-                  {/* Línea superior elegante */}
-                  <div style={styles.infoTopLine} />
+              {/* COLUMNA DERECHA - INFO PANEL */}
+              <div className="project-info">
+                <div className="info-card">
+                  <div className="info-accent-line" />
+                  <div className="info-category">{focusedCard.category}</div>
+                  <h1 className="info-title">{focusedCard.title}</h1>
+                  <p className="info-description">{focusedCard.fullDescription}</p>
                   
-                  {/* Header - Categoría y título */}
-                  <div style={styles.projectHeader}>
-                    <span style={styles.projectCategory}>{focusedCard.category}</span>
-                    <h1 style={{ ...styles.projectTitle, fontSize: isMobile ? '28px' : '38px' }}>{focusedCard.title}</h1>
-                  </div>
-
-                  {/* DESCRIPCIÓN COMPLETA - SIN TRUNCAR */}
-                  <p style={{
-                    ...styles.projectDescription,
-                    fontSize: isMobile ? '12px' : '13px'
-                  }}>
-                    {focusedCard.fullDescription}
-                  </p>
-
-                  {/* Metadata - Versión premium */}
-                  <div style={styles.metadataGrid}>
-                    <div style={styles.metadataItem}>
-                      <span style={styles.metadataLabel}>CLIENT</span>
-                      <span style={styles.metadataValue}>{focusedCard.client}</span>
-                    </div>
-                    <div style={styles.metadataItem}>
-                      <span style={styles.metadataLabel}>YEAR</span>
-                      <span style={styles.metadataValue}>{focusedCard.year}</span>
-                    </div>
-                    <div style={styles.metadataItem}>
-                      <span style={styles.metadataLabel}>ROLE</span>
-                      <span style={styles.metadataValue}>{focusedCard.role}</span>
-                    </div>
-                    {focusedCard.software?.length > 0 ? (
-                      <div style={styles.metadataItem}>
-                        <span style={styles.metadataLabel}>SOFTWARE</span>
-                        <span style={styles.metadataValue}>{focusedCard.software.join(', ')}</span>
+                  <div className="info-metadata">
+                    <div className="metadata-row">
+                      <div className="metadata-field">
+                        <span className="field-label">CLIENT</span>
+                        <span className="field-value">{focusedCard.client}</span>
                       </div>
-                    ) : (
-                      <div style={styles.metadataItem}>
-                        <span style={styles.metadataLabel}>SOFTWARE</span>
-                        <span style={{...styles.metadataValue, opacity: 0.4, fontStyle: 'italic'}}>—</span>
+                      <div className="metadata-field">
+                        <span className="field-label">YEAR</span>
+                        <span className="field-value">{focusedCard.year}</span>
                       </div>
-                    )}
+                    </div>
+                    <div className="metadata-row">
+                      <div className="metadata-field">
+                        <span className="field-label">ROLE</span>
+                        <span className="field-value">{focusedCard.role}</span>
+                      </div>
+                      <div className="metadata-field">
+                        <span className="field-label">SOFTWARE</span>
+                        <span className="field-value">
+                          {focusedCard.software?.length > 0 ? focusedCard.software.join(', ') : '—'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Tags */}
-                  <div style={styles.tagsContainer}>
+                  
+                  <div className="info-tags">
                     {focusedCard.tags.map((tag, idx) => (
-                      <span key={idx} className="tag" style={styles.tag}>{tag}</span>
+                      <span key={idx} className="tag-pill">{tag}</span>
                     ))}
                   </div>
-
-                  {/* View Project Link */}
+                  
                   {focusedCard.projectUrl && (
-                    <a 
-                      href={focusedCard.projectUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="view-project-link" 
-                      style={styles.viewProjectLink}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.opacity = '1'
-                        e.currentTarget.style.letterSpacing = '0.14em'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.opacity = '0.85'
-                        e.currentTarget.style.letterSpacing = '0.1em'
-                      }}
-                    >
+                    <a href={focusedCard.projectUrl} target="_blank" rel="noopener noreferrer" className="info-link">
                       VIEW PROJECT →
                     </a>
                   )}
@@ -908,81 +900,6 @@ export default function App() {
 
 // ============ ESTILOS ============
 const styles = {
-  // Lightbox
-  lightboxOverlay: {
-    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-    background: 'rgba(2, 5, 12, 0.97)', backdropFilter: 'blur(40px) saturate(1.2)',
-    WebkitBackdropFilter: 'blur(40px) saturate(1.2)', zIndex: 1000,
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    animation: 'lightboxFadeIn 0.35s cubic-bezier(0.2, 0.95, 0.4, 1)', cursor: 'zoom-out', overflow: 'hidden'
-  },
-  lightboxBackgroundGlow: {
-    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-    width: '60vw', height: '60vh',
-    background: 'radial-gradient(ellipse at center, rgba(94, 156, 250, 0.06) 0%, rgba(8, 12, 20, 0) 70%)',
-    pointerEvents: 'none', zIndex: 0
-  },
-  lightboxHeader: {
-    position: 'fixed', top: 0, left: 0, right: 0, height: '70px',
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px',
-    zIndex: 1002,
-    background: 'linear-gradient(to bottom, rgba(8, 12, 20, 0.9) 0%, rgba(8, 12, 20, 0.4) 70%, transparent 100%)',
-    pointerEvents: 'none'
-  },
-  lightboxCounter: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '11px', fontWeight: 350,
-    color: '#748cab', letterSpacing: '0.15em', pointerEvents: 'auto',
-    padding: '6px 14px', background: 'rgba(13, 19, 33, 0.5)', borderRadius: '6px',
-    border: '1px solid rgba(116, 140, 171, 0.1)', backdropFilter: 'blur(8px)'
-  },
-  lightboxCloseButton: {
-    width: '42px', height: '42px', borderRadius: '50%',
-    border: '1px solid rgba(240, 235, 216, 0.12)', background: 'rgba(13, 19, 33, 0.5)',
-    backdropFilter: 'blur(10px)', color: '#f0ebd8', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    transition: 'all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1.05)', pointerEvents: 'auto',
-    fontFamily: "'Source Code Pro', monospace", fontWeight: 300, opacity: 0.75
-  },
-  lightboxMainContainer: {
-    position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: '100%', height: '100%', padding: '80px 100px 80px 100px', zIndex: 1001, cursor: 'default'
-  },
-  lightboxImageCanvas: {
-    position: 'relative', maxWidth: '82vw', maxHeight: '78vh',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'rgba(8, 12, 20, 0.65)', borderRadius: '12px',
-    border: '1px solid rgba(240, 235, 216, 0.08)',
-    boxShadow: '0 40px 80px -30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(240, 235, 216, 0.03) inset',
-    overflow: 'hidden', padding: '24px'
-  },
-  lightboxImageCanvasAsset: { maxHeight: '65vh', maxWidth: '70vw', padding: '32px' },
-  lightboxImage: {
-    maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block',
-    animation: 'lightboxImageIn 0.45s cubic-bezier(0.2, 0.95, 0.4, 1)', borderRadius: '4px'
-  },
-  lightboxImageAsset: { maxHeight: '60vh', objectFit: 'contain' },
-  lightboxNavButton: {
-    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-    width: '52px', height: '52px', borderRadius: '50%',
-    border: '1px solid rgba(240, 235, 216, 0.1)', background: 'rgba(240, 235, 216, 0.03)',
-    backdropFilter: 'blur(8px)', color: '#f0ebd8', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.4,
-    transition: 'all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1.05)', zIndex: 1003, margin: '0 20px'
-  },
-  lightboxPrevButton: { left: '20px' },
-  lightboxNextButton: { right: '20px' },
-  lightboxCaption: {
-    position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
-    padding: '8px 20px', background: 'rgba(13, 19, 33, 0.7)', backdropFilter: 'blur(12px)',
-    borderRadius: '20px', border: '1px solid rgba(240, 235, 216, 0.06)',
-    zIndex: 1002, maxWidth: '60vw', textAlign: 'center'
-  },
-  lightboxCaptionText: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '11px', fontWeight: 300,
-    color: '#748cab', letterSpacing: '0.06em', lineHeight: 1.4
-  },
-
-  // Splash Screen
   splashScreen: {
     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
     background: '#000000', zIndex: 10,
@@ -1022,8 +939,6 @@ const styles = {
   enterHover: { opacity: 0.85, letterSpacing: '0.65em', textShadow: '0 0 15px rgba(0, 150, 255, 0.7), 0 0 30px rgba(0, 150, 255, 0.4), 0 0 5px rgba(255,255,255,0.8)' },
   enterActive: { opacity: 1, letterSpacing: '0.8em', textShadow: '0 0 25px rgba(0, 150, 255, 0.9), 0 0 50px rgba(0, 150, 255, 0.6), 0 0 80px rgba(0, 150, 255, 0.3), 0 0 10px #ffffff' },
   enterExit: { opacity: 0, filter: 'blur(4px)', transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)', pointerEvents: 'none' },
-
-  // Home Page
   homePage: {
     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
     background: '#000000', zIndex: 5, opacity: 0, transform: 'translateY(30px)',
@@ -1050,8 +965,6 @@ const styles = {
   availabilityText: { fontFamily: "'Source Code Pro', monospace", fontWeight: 300, fontSize: '11px', letterSpacing: '0.02em', color: '#f0ebd8', opacity: 0.6 },
   description: { position: 'absolute', zIndex: 10 },
   descLine: { fontFamily: "'Source Code Pro', monospace", fontWeight: 300, fontSize: '14px', lineHeight: 1.55, letterSpacing: '0.01em', color: '#f0ebd8', opacity: 0.75, marginBottom: '10px' },
-
-  // Navigation
   navWrapper: {
     position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center',
     zIndex: 10, transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)', transformOrigin: 'center'
@@ -1065,16 +978,12 @@ const styles = {
   navLabelWork: { top: '50%', right: '197px', transform: 'translateY(-50%)' },
   navLabelAbout: { top: '50%', right: '-40px', transform: 'translateY(-50%)' },
   navLabelContact: { bottom: '-10px', left: '50%', transform: 'translateX(-50%)' },
-
-  // About
   aboutImageOverlay: { position: 'fixed', top: '50%', right: '20%', transform: 'translateY(-50%)', zIndex: 20, transition: 'opacity 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1)' },
   aboutImageVisible: { opacity: 1, transform: 'translateY(-50%) translateY(0)' },
   aboutImageHidden: { opacity: 0, transform: 'translateY(-50%) translateY(20px)', pointerEvents: 'none' },
   aboutImageContainer: { position: 'relative', display: 'inline-block' },
   closeButton: { position: 'absolute', top: '65px', right: '50px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(13, 19, 33, 0.9)', border: '1px solid rgba(240, 235, 216, 0.3)', color: '#f0ebd8', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.6, backdropFilter: 'blur(4px)', fontFamily: 'monospace', zIndex: 21 },
   aboutImage: { maxWidth: '300px', width: '90%', height: 'auto', borderRadius: '15px', boxShadow: '0 30px 35px -10px rgba(0,0,0,0.3)' },
-
-  // Contact
   contactOverlay: { position: 'fixed', top: '50%', left: '70%', transform: 'translate(-50%, -50%)', zIndex: 20, width: 'auto', maxWidth: '90vw', maxHeight: '90vh', display: 'flex', justifyContent: 'center', alignItems: 'center' },
   contactOverlayVisible: { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
   contactOverlayHidden: { opacity: 0, transform: 'translate(-50%, -50%) scale(0.95)', pointerEvents: 'none' },
@@ -1088,8 +997,6 @@ const styles = {
   socialButtonsContainer: { position: 'absolute', bottom: '35%', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '14px', zIndex: 22 },
   socialButton: { display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1.05)' },
   socialIcon: { width: 'clamp(165px, 6vw, 40px)', height: 'auto', objectFit: 'contain', filter: 'brightness(0.9)', transition: 'all 0.3s ease' },
-
-  // Work Panel
   workPanel: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000000', zIndex: 30, overflow: 'hidden' },
   workPanelVisible: { opacity: 1, transform: 'scale(1)' },
   workPanelWithFocus: { opacity: 1, transform: 'scale(1)' },
@@ -1097,7 +1004,6 @@ const styles = {
   workPanelContent: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', padding: '60px 60px', overflowX: 'auto', overflowY: 'hidden', cursor: 'grab', transition: 'filter 0.5s cubic-bezier(0.3, 0.9, 0.4, 1)' },
   workPanelContentBlurred: { filter: 'blur(12px)' },
   projectsContainer: { display: 'flex', gap: '30px', alignItems: 'center', justifyContent: 'flex-start', flexWrap: 'nowrap' },
-
   projectCard: { flex: '0 0 auto', width: '360px', background: 'transparent', borderRadius: '20px', overflow: 'visible', cursor: 'pointer', position: 'relative', zIndex: 1, willChange: 'transform' },
   projectCardHovered: { transform: 'translateY(-8px) scale(1.02)', zIndex: 10 },
   projectImageContainer: { width: '100%', aspectRatio: '4 / 3', borderRadius: '20px', overflow: 'hidden', position: 'relative', background: '#0a0a0a', boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.3)' },
@@ -1106,7 +1012,6 @@ const styles = {
   imageOverlayHovered: { padding: '25px 20px 25px 20px', background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)' },
   overlayTitle: { fontFamily: "'Source Code Pro', monospace", fontWeight: 500, fontSize: '18px', letterSpacing: '0.08em', color: '#f0ebd8', margin: 0, marginBottom: '6px' },
   overlayCategory: { fontFamily: "'Source Code Pro', monospace", fontWeight: 300, fontSize: '10px', letterSpacing: '0.2em', color: '#5e9cfa', margin: 0, textTransform: 'uppercase' },
-  cardGlow: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(8, 5, 189, 0.15), transparent)', pointerEvents: 'none', opacity: 0 },
   floatingPanel: { position: 'absolute', bottom: '-20px', left: '15px', right: '15px', background: 'rgba(13, 25, 45, 0.98)', backdropFilter: 'blur(16px)', borderRadius: '16px', overflow: 'hidden', opacity: 0, transform: 'translateY(20px) scale(0.95)', pointerEvents: 'none', zIndex: 20 },
   floatingPanelVisible: { opacity: 1, transform: 'translateY(0) scale(1)', pointerEvents: 'auto', bottom: '-10px' },
   floatingContent: { padding: '16px 18px 18px 18px' },
@@ -1117,314 +1022,920 @@ const styles = {
   floatingSeparator: { color: '#748cab', opacity: 0.5 },
   floatingUrl: { marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(94, 156, 250, 0.15)' },
   floatingUrlLink: { fontFamily: "'Source Code Pro', monospace", fontWeight: 350, fontSize: '9px', letterSpacing: '0.12em', color: '#5e9cfa', textDecoration: 'none', display: 'inline-block' },
-
   workCloseButton: { position: 'fixed', bottom: '48px', right: '48px', background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.8, zIndex: 31 },
   workCloseButtonHidden: { opacity: 0, pointerEvents: 'none' },
   workCloseIcon: { width: '48px', height: '48px', objectFit: 'contain' },
-
-  // View hints
-  viewHint: {
-    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-    fontFamily: "'Source Code Pro', monospace", fontSize: '16px', fontWeight: 400, letterSpacing: '0.3em',
-    color: '#f0ebd8', opacity: 0, transition: 'opacity 0.3s ease', textShadow: '0 2px 8px rgba(0, 0, 0, 0.8)',
-    pointerEvents: 'none', zIndex: 10, background: 'rgba(0, 0, 0, 0.5)', padding: '10px 24px',
-    borderRadius: '30px', border: '1px solid rgba(240, 235, 216, 0.2)', backdropFilter: 'blur(4px)'
-  },
-  viewHintSmall: {
-    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-    fontFamily: "'Source Code Pro', monospace", fontSize: '11px', fontWeight: 400, letterSpacing: '0.2em',
-    color: '#f0ebd8', opacity: 0, transition: 'opacity 0.3s ease', textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)',
-    pointerEvents: 'none', zIndex: 10, background: 'rgba(0, 0, 0, 0.5)', padding: '6px 16px',
-    borderRadius: '20px', border: '1px solid rgba(240, 235, 216, 0.15)', backdropFilter: 'blur(4px)'
-  },
-
-  // VIDEO/ASSET
-  videoContainer: {
-    width: '100%', marginTop: '48px', marginBottom: '48px',
-    display: 'flex', justifyContent: 'center', alignItems: 'center',
-    padding: '56px 0 40px', position: 'relative'
-  },
-  videoWrapper: {
-    width: 'min(620px, 78%)', minHeight: '380px', borderRadius: '20px',
-    overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'rgba(8, 12, 20, 0.45)', border: '1px solid rgba(240, 235, 216, 0.07)',
-    boxShadow: '0 40px 90px -45px rgba(0, 0, 0, 0.85), 0 0 80px rgba(94, 156, 250, 0.05)'
-  },
-  videoPlayer: {
-    width: '100%', height: '100%', maxHeight: '440px',
-    objectFit: 'contain', display: 'block', background: 'transparent', padding: '32px'
-  },
-  assetShowcaseHeader: {
-    position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)',
-    display: 'flex', alignItems: 'center', gap: '12px', zIndex: 2, opacity: 0.55
-  },
-  assetShowcaseLabel: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '9px', fontWeight: 350,
-    letterSpacing: '0.22em', color: '#748cab', whiteSpace: 'nowrap'
-  },
-  assetShowcaseLine: { width: '48px', height: '1px', background: 'rgba(116, 140, 171, 0.35)' },
-
-  // Vista Expandida
-  immersiveOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(20px)', zIndex: 200, overflow: 'hidden' },
-  immersiveOverlayOpen: { opacity: 1 },
-  immersiveOverlayClosing: { opacity: 0 },
-  immersiveHeader: { position: 'fixed', top: 0, left: 0, right: 0, height: '60px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '0 40px', zIndex: 201, background: 'linear-gradient(to bottom, rgba(8, 12, 20, 0.9), transparent)' },
-  immersiveCloseButton: { width: '44px', height: '44px', borderRadius: '50%', border: '1px solid rgba(240, 235, 216, 0.15)', background: 'rgba(13, 19, 33, 0.5)', backdropFilter: 'blur(10px)', color: '#f0ebd8', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.65, fontFamily: "'Source Code Pro', monospace", fontWeight: 300 },
-  closeIcon: { lineHeight: 1, fontWeight: 300 },
-  landscapeLayout: { display: 'flex', height: '100vh', width: '100%', gap: '60px', overflow: 'hidden' },
-  galleryContainer: { flex: '0 0 65%', height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingRight: '20px' },
-  heroImageWrapper: { width: '100%', marginBottom: '24px', borderRadius: '16px', overflow: 'hidden', position: 'relative', boxShadow: '0 30px 60px -20px rgba(0, 0, 0, 0.5)', transition: 'transform 0.4s ease' },
-  heroImage: { width: '100%', height: 'auto', aspectRatio: '16 / 9', display: 'block' },
-  heroImageGlow: { position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(192, 132, 252, 0.05), transparent 60%)', pointerEvents: 'none' },
-  secondaryImagesGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' },
-  secondaryImageCard: { borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: '0 10px 25px -10px rgba(0, 0, 0, 0.3)', opacity: 0, animation: 'fadeInUp 0.6s cubic-bezier(0.2, 0.95, 0.4, 1) forwards' },
-  secondaryImage: { width: '100%', height: 'auto', aspectRatio: '4 / 3', display: 'block' },
-  secondaryImageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 16px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', opacity: 0 },
-  secondaryImageCaption: { fontFamily: "'Source Code Pro', monospace", fontSize: '11px', fontWeight: 300, color: '#f0ebd8', opacity: 0.9, letterSpacing: '0.03em' },
-
-  // INFO PANEL - VERSIÓN PREMIUM - CON DESCRIPCIÓN COMPLETA Y SCROLL INTERNO
-  infoPanel: {
-    flex: '0 0 35%', height: '100%', display: 'flex', alignItems: 'flex-start',
-    animation: 'panelSlideIn 0.8s cubic-bezier(0.2, 0.95, 0.4, 1) 0.2s both',
-    paddingRight: '20px'
-  },
-  infoContent: {
-    width: '100%', padding: '44px 36px',
-    background: 'rgba(6, 10, 18, 0.65)',
-    backdropFilter: 'blur(20px) saturate(1.5)',
-    WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
-    borderRadius: '26px',
-    border: '1px solid rgba(240, 235, 216, 0.06)',
-    boxShadow: '0 45px 85px -35px rgba(0, 0, 0, 0.65), 0 0 0 0.5px rgba(94, 156, 250, 0.08) inset, 0 8px 20px -8px rgba(0, 0, 0, 0.4)',
-    position: 'relative', overflowY: 'auto', overflowX: 'hidden',
-    maxHeight: 'calc(100vh - 160px)',
-    transition: 'box-shadow 0.4s ease, border-color 0.3s ease'
-  },
-  infoGlowTop: {
-    position: 'absolute', top: '-40px', right: '-20%',
-    width: '150%', height: '100px',
-    background: 'radial-gradient(ellipse, rgba(94, 156, 250, 0.08), transparent 70%)',
-    pointerEvents: 'none', zIndex: 0,
-    borderRadius: '100%'
-  },
-  infoGlowCorner: {
-    position: 'absolute', bottom: '20px', left: '20px',
-    width: '80px', height: '80px',
-    background: 'radial-gradient(circle, rgba(94, 156, 250, 0.04), transparent 80%)',
-    pointerEvents: 'none', zIndex: 0
-  },
-  infoTopLine: {
-    width: '48px', height: '2px',
-    background: 'linear-gradient(90deg, #5e9cfa, rgba(94, 156, 250, 0.2), transparent)',
-    marginBottom: '32px',
-    borderRadius: '2px',
-    position: 'relative',
-    zIndex: 1
-  },
-  projectHeader: {
-    marginBottom: '32px', position: 'relative',
-    paddingBottom: '24px', borderBottom: '1px solid rgba(240, 235, 216, 0.05)'
-  },
-  projectCategory: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '10px', fontWeight: 380,
-    letterSpacing: '0.28em', color: '#5e9cfa', textTransform: 'uppercase',
-    marginBottom: '16px', display: 'inline-block',
-    background: 'rgba(94, 156, 250, 0.08)',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    backdropFilter: 'blur(4px)',
-    border: '0.5px solid rgba(94, 156, 250, 0.15)'
-  },
-  projectTitle: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '38px', fontWeight: 480,
-    letterSpacing: '0.03em', color: '#f0ebd8', margin: 0, lineHeight: 1.15,
-    textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)', position: 'relative',
-    maxWidth: '100%', wordBreak: 'break-word'
-  },
-  // DESCRIPCIÓN COMPLETA - SIN TRUNCAR
-  projectDescription: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '13px', fontWeight: 320,
-    lineHeight: 1.72, color: '#b8c7dc', margin: '0 0 34px 0', letterSpacing: '0.015em',
-    maxWidth: '100%', opacity: 0.88, overflow: 'visible',
-    textRendering: 'geometricPrecision'
-  },
-  metadataGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '28px 24px',
-    marginBottom: '32px', padding: '28px 0 24px 0',
-    borderTop: '1px solid rgba(240, 235, 216, 0.04)',
-    borderBottom: '1px solid rgba(240, 235, 216, 0.04)',
-    position: 'relative'
-  },
-  metadataItem: {
-    display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative',
-    background: 'rgba(255, 255, 255, 0.01)',
-    padding: '6px 0'
-  },
-  metadataLabel: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '8px', fontWeight: 420,
-    letterSpacing: '0.2em', color: '#5e9cfa', textTransform: 'uppercase', opacity: 0.65,
-    lineHeight: 1.2
-  },
-  metadataValue: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '13px', fontWeight: 420,
-    color: '#e8e4d4', letterSpacing: '0.01em', opacity: 0.92, lineHeight: 1.35,
-    wordBreak: 'break-word'
-  },
-  tagsContainer: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' },
-  tag: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '9px', fontWeight: 370,
-    letterSpacing: '0.08em', color: '#6ea8fe', background: 'rgba(94, 156, 250, 0.06)',
-    padding: '4px 14px', borderRadius: '24px', border: '0.5px solid rgba(94, 156, 250, 0.2)',
-    textTransform: 'uppercase', transition: 'all 0.25s cubic-bezier(0.2, 0.95, 0.4, 1)',
-    backdropFilter: 'blur(4px)'
-  },
-  viewProjectLink: {
-    fontFamily: "'Source Code Pro', monospace", fontSize: '11px', fontWeight: 410,
-    letterSpacing: '0.1em', color: '#5e9cfa', textDecoration: 'none',
-    padding: '10px 0 8px 0', borderBottom: '1px solid rgba(94, 156, 250, 0.3)',
-    transition: 'all 0.3s cubic-bezier(0.2, 0.95, 0.4, 1)', display: 'inline-flex',
-    alignItems: 'center', gap: '4px', opacity: 0.9,
-    background: 'transparent'
-  }
 }
 
 // Inyectar estilos CSS globales
 const styleSheet = document.createElement("style");
 styleSheet.textContent = `
-  @keyframes lightboxFadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes lightboxImageIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulseGreen { 0% { opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); } 70% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(16, 61, 185, 0); } 100% { opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-  @keyframes gallerySlideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes panelSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-  
+  /* === ANIMACIONES === */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes pulseGreen {
+    0% { opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); }
+    70% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(16, 61, 185, 0); }
+    100% { opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  /* === ESTILOS GLOBALES === */
   body.lightbox-open { overflow: hidden; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   
+  .work-panel-content { scrollbar-width: none; -ms-overflow-style: none; }
+  .work-panel-content::-webkit-scrollbar { display: none; }
+  
+  .nav-label-bloom { transition: all 0.3s ease; cursor: pointer; }
   .nav-label-bloom:hover {
-    text-shadow: 0 0 8px rgba(240, 235, 216, 0.9), 0 0 16px rgba(240, 235, 216, 0.6), 0 0 24px rgba(192, 132, 252, 0.4) !important;
+    text-shadow: 0 0 8px rgba(240, 235, 216, 0.9), 0 0 16px rgba(240, 235, 216, 0.6);
     opacity: 1 !important;
   }
-  .secondary-image-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px -12px rgba(0, 0, 0, 0.5); }
-  .secondary-image-card:hover .secondary-image-overlay { opacity: 1; }
-  .hero-image-wrapper:hover { box-shadow: 0 35px 70px -25px rgba(0, 0, 0, 0.6); }
-  .video-wrapper { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-  .video-wrapper:hover { transform: translateY(-2px); box-shadow: 0 45px 100px -45px rgba(0, 0, 0, 0.9), 0 0 100px rgba(94, 156, 250, 0.08); }
-  
-  .tag:hover {
-    background: rgba(94, 156, 250, 0.14) !important;
-    border-color: rgba(94, 156, 250, 0.4) !important;
-    transform: translateY(-1px);
-    color: #89b9ff !important;
-  }
-  .view-project-link::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
+
+  /* === VISTA INMERSIVA DEL PROYECTO === */
+  .project-master-view {
+    position: fixed;
+    top: 0;
     left: 0;
-    width: 0;
-    height: 1px;
-    background: #5e9cfa;
-    transition: width 0.3s cubic-bezier(0.2, 0.95, 0.4, 1);
+    width: 100vw;
+    height: 100vh;
+    z-index: 200;
+    animation: fadeIn 0.5s ease;
   }
-  .view-project-link:hover::after {
+
+  .project-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%;
+    background: rgba(2, 5, 10, 0.94);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
   }
-  
-  .info-content {
-    transition: transform 0.3s ease, box-shadow 0.4s ease;
+
+  .project-close-btn {
+    position: fixed;
+    top: 28px;
+    right: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(13, 19, 33, 0.6);
+    border: 1px solid rgba(240, 235, 216, 0.12);
+    color: #f0ebd8;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 210;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+    opacity: 0.7;
+  }
+
+  .project-close-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    background: rgba(13, 19, 33, 0.85);
+    border-color: rgba(240, 235, 216, 0.25);
+  }
+
+  .project-close-btn span {
+    line-height: 1;
+    margin-top: -2px;
+  }
+
+  .project-layout {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    gap: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 201;
+  }
+
+  /* === COLUMNA IZQUIERDA - GALERÍA === */
+  .project-gallery {
+    flex: 0 0 58%;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 100px 40px 60px 60px;
     scrollbar-width: thin;
     scrollbar-color: rgba(240, 235, 216, 0.12) transparent;
   }
-  .info-content::-webkit-scrollbar { width: 3px; }
-  .info-content::-webkit-scrollbar-track { background: transparent; margin: 20px 0; }
-  .info-content::-webkit-scrollbar-thumb { background: rgba(240, 235, 216, 0.12); border-radius: 3px; }
-  .info-content::-webkit-scrollbar-thumb:hover { background: rgba(240, 235, 216, 0.22); }
-  .info-content:hover {
-    border-color: rgba(240, 235, 216, 0.09);
-    box-shadow: 0 50px 90px -35px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(94, 156, 250, 0.12) inset;
+
+  .project-gallery::-webkit-scrollbar { width: 4px; }
+  .project-gallery::-webkit-scrollbar-track { background: transparent; }
+  .project-gallery::-webkit-scrollbar-thumb { background: rgba(240, 235, 216, 0.12); border-radius: 4px; }
+
+  /* Hero Image */
+  .gallery-hero {
+    position: relative;
+    width: 100%;
+    margin-bottom: 28px;
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-  .info-content::before {
-    content: '';
+
+  .hero-cover-mode {
+    background: transparent;
+    aspect-ratio: 16 / 9;
+  }
+
+  .hero-contain-mode {
+    background: #0a0e16;
+    aspect-ratio: 4 / 3;
+  }
+
+  .hero-image-wrapper {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .hero-img.img-cover {
+    object-fit: cover;
+  }
+
+  .hero-img.img-contain {
+    object-fit: contain;
+  }
+
+  .gallery-hero:hover {
+    transform: scale(1.008);
+    box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero-hint {
     position: absolute;
-    top: 0;
-    left: 40px;
-    right: 40px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(94, 156, 250, 0.2) 30%, rgba(94, 156, 250, 0.2) 70%, transparent);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    color: #f0ebd8;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(240, 235, 216, 0.15);
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
   }
-  .info-content:hover::before { opacity: 1; }
+
+  .gallery-hero:hover .hero-hint {
+    opacity: 1;
+  }
+
+  /* Grid secundario */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .grid-item {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideUp 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  .grid-cover-mode {
+    background: transparent;
+    aspect-ratio: 4 / 3;
+  }
+
+  .grid-contain-mode {
+    background: #0a0e16;
+    aspect-ratio: 4 / 3;
+  }
+
+  .grid-image-wrapper {
+    width: 100%;
+    height: 100%;
+  }
+
+  .grid-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .grid-img.img-cover {
+    object-fit: cover;
+  }
+
+  .grid-img.img-contain {
+    object-fit: contain;
+  }
+
+  .grid-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px -18px rgba(0, 0, 0, 0.5);
+  }
+
+  .grid-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 16px 16px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .grid-overlay span {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    color: #f0ebd8;
+  }
+
+  .grid-item:hover .grid-overlay {
+    opacity: 1;
+  }
+
+  .grid-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: #f0ebd8;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(240, 235, 216, 0.12);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+
+  .grid-item:hover .grid-hint {
+    opacity: 1;
+  }
+
+  /* Video */
+  .gallery-video {
+    margin-top: 16px;
+    margin-bottom: 40px;
+  }
+
+  .video-container {
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #0a0e16;
+    border: 1px solid rgba(240, 235, 216, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    aspect-ratio: 16 / 9;
+  }
+
+  .video-container:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 30px 50px -25px rgba(0, 0, 0, 0.5);
+  }
+
+  .video-player {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    background: #0a0e16;
+  }
+
+  /* === COLUMNA DERECHA - INFO PANEL === */
+  .project-info {
+    flex: 0 0 42%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 100px 60px 60px 20px;
+    overflow-y: auto;
+  }
+
+  .info-card {
+    width: 100%;
+    padding: 48px 40px;
+    background: rgba(6, 10, 18, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 28px;
+    border: 1px solid rgba(240, 235, 216, 0.04);
+    box-shadow: 0 40px 70px -35px rgba(0, 0, 0, 0.5);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    animation: slideInRight 0.6s ease 0.1s both;
+  }
+
+  .info-card:hover {
+    border-color: rgba(240, 235, 216, 0.07);
+    box-shadow: 0 45px 80px -35px rgba(0, 0, 0, 0.55);
+  }
+
+  .info-accent-line {
+    width: 42px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(94, 156, 250, 0.6), rgba(94, 156, 250, 0.05), transparent);
+    margin-bottom: 28px;
+  }
+
+  .info-category {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 9px;
+    font-weight: 350;
+    letter-spacing: 0.28em;
+    color: #8a9bb5;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .info-title {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 38px;
+    font-weight: 450;
+    letter-spacing: 0.02em;
+    color: #f0ebd8;
+    margin: 0 0 24px 0;
+    line-height: 1.2;
+  }
+
+  .info-description {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: #b8c4d4;
+    margin-bottom: 36px;
+    letter-spacing: 0.01em;
+  }
+
+  .info-metadata {
+    margin-bottom: 32px;
+    padding: 24px 0;
+    border-top: 1px solid rgba(240, 235, 216, 0.03);
+    border-bottom: 1px solid rgba(240, 235, 216, 0.03);
+  }
+
+  .metadata-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 20px;
+  }
+
+  .metadata-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .metadata-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 7.5px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: #8a9bb5;
+    text-transform: uppercase;
+  }
+
+  .field-value {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 12px;
+    font-weight: 400;
+    color: #e2ded0;
+    letter-spacing: 0.01em;
+    word-break: break-word;
+  }
+
+  .info-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .tag-pill {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 8px;
+    font-weight: 350;
+    letter-spacing: 0.06em;
+    color: #8a9bb5;
+    background: rgba(138, 155, 181, 0.08);
+    padding: 4px 14px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .tag-pill:hover {
+    background: rgba(138, 155, 181, 0.14);
+    color: #c8d4e4;
+  }
+
+  .info-link {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: #8a9bb5;
+    text-decoration: none;
+    padding: 8px 0 6px 0;
+    border-bottom: 1px solid rgba(138, 155, 181, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.25s ease;
+    opacity: 0.8;
+  }
+
+  .info-link:hover {
+    opacity: 1;
+    color: #a8b8cc;
+    border-bottom-color: rgba(138, 155, 181, 0.6);
+  }
+
+  /* === LIGHTBOX PREMIUM - SISTEMA DE FORMATOS === */
+  .lightbox-premium-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(2, 5, 10, 0.98);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+
+  .lightbox-premium-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
   
-  .contact-close-button:hover { opacity: 1 !important; transform: scale(1.1) !important; background: rgba(13, 19, 33, 1) !important; border-color: rgba(240, 235, 216, 0.7) !important; box-shadow: 0 0 15px rgba(94, 156, 250, 0.3) !important; }
-  .contact-image-wrapper:hover { filter: drop-shadow(0 0 20px rgba(94, 156, 250, 0.5)) drop-shadow(0 0 40px rgba(94, 156, 250, 0.3)); transform: scale(1.02); }
-  .social-button:hover { transform: scale(1.1) !important; }
-  .social-button:hover img { filter: brightness(1.2) drop-shadow(0 0 8px rgba(240, 235, 216, 0.8)) !important; }
-  .contact-email:hover, .contact-phone:hover { opacity: 1 !important; color: #5e9cfa !important; text-shadow: 0 0 8px rgba(94, 156, 250, 0.4) !important; }
-
-  .gallery-container { scrollbar-width: thin; scrollbar-color: rgba(240, 235, 216, 0.15) transparent; }
-  .gallery-container::-webkit-scrollbar { width: 4px; }
-  .gallery-container::-webkit-scrollbar-track { background: transparent; }
-  .gallery-container::-webkit-scrollbar-thumb { background: rgba(240, 235, 216, 0.15); border-radius: 2px; }
-  .work-panel-content { scrollbar-width: none; -ms-overflow-style: none; }
-  .work-panel-content::-webkit-scrollbar { display: none; }
-
-  @media (max-width: 1440px) { .landscape-layout { gap: 40px; } }
-  @media (max-width: 1200px) { .gallery-container { flex: 0 0 60% !important; } .info-panel { flex: 0 0 40% !important; } }
-  @media (max-width: 1024px) {
-    .landscape-layout { flex-direction: column !important; gap: 40px; padding: 80px 40px 50px !important; overflow-y: auto; }
-    .gallery-container { flex: none !important; width: 100%; height: auto; overflow-y: visible; }
-    .info-panel { flex: none !important; width: 100%; height: auto; padding: 0 0 40px; }
-    .project-title { font-size: 32px !important; }
-    .info-content { padding: 36px 28px !important; border-radius: 22px !important; max-height: none !important; overflow-y: visible !important; }
-    .info-content::before { left: 28px; right: 28px; }
-    .metadata-grid { gap: 24px 20px !important; padding: 24px 0 !important; }
-    .lightbox-image-canvas { max-width: 88vw; max-height: 72vh; padding: 20px; border-radius: 10px; }
-    .lightbox-image-canvas-asset { max-height: 60vh; max-width: 80vw; padding: 24px; }
-    .video-wrapper { width: min(560px, 85%) !important; min-height: 340px !important; }
-    .video-player { max-height: 400px !important; padding: 24px !important; }
+  .lightbox-premium-bg.bg-low {
+    width: 40vw;
+    height: 40vh;
+    background: radial-gradient(ellipse, rgba(94, 156, 250, 0.04), transparent 70%);
   }
+  
+  .lightbox-premium-bg.bg-medium {
+    width: 50vw;
+    height: 50vh;
+    background: radial-gradient(ellipse, rgba(94, 156, 250, 0.06), rgba(5, 8, 12, 0.2) 70%);
+  }
+  
+  .lightbox-premium-bg.bg-high {
+    width: 60vw;
+    height: 60vh;
+    background: radial-gradient(ellipse, rgba(94, 156, 250, 0.08), rgba(5, 8, 12, 0.3) 70%);
+  }
+
+  .lightbox-premium-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1002;
+    background: linear-gradient(to bottom, rgba(2, 5, 10, 0.8), transparent);
+  }
+
+  .lightbox-premium-counter {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10px;
+    font-weight: 300;
+    color: #8a9bb5;
+    letter-spacing: 0.12em;
+    padding: 4px 12px;
+    background: rgba(13, 19, 33, 0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(138, 155, 181, 0.1);
+  }
+
+  .lightbox-premium-close {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(13, 19, 33, 0.4);
+    border: 1px solid rgba(240, 235, 216, 0.1);
+    color: #f0ebd8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+  }
+
+  .lightbox-premium-close:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    background: rgba(13, 19, 33, 0.7);
+    border-color: rgba(240, 235, 216, 0.2);
+  }
+
+  .lightbox-premium-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 80px 100px;
+    z-index: 1001;
+  }
+
+  /* Canvas por modo */
+  .lightbox-premium-canvas.canvas-contain {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 80vw;
+    max-height: 75vh;
+    background: rgba(5, 8, 12, 0.4);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s ease;
+  }
+  
+  .lightbox-premium-canvas.canvas-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 50vw;
+    max-width: 85vw;
+    height: auto;
+    min-height: 45vh;
+    max-height: 75vh;
+    background: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .lightbox-premium-canvas.canvas-cinematic {
+    width: auto;
+    min-width: 65vw;
+    max-width: 90vw;
+    aspect-ratio: 16 / 9;
+    background: #05080c;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.6);
+  }
+  
+  .lightbox-premium-canvas.canvas-ornamental {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 45vw;
+    max-width: 70vw;
+    aspect-ratio: 3 / 4;
+    background: linear-gradient(135deg, #0a0e16, #060910);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(94, 156, 250, 0.08) inset;
+  }
+  
+  .lightbox-premium-canvas.canvas-asset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 40vw;
+    max-width: 65vw;
+    aspect-ratio: 1 / 1;
+    background: #0a0e16;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(240, 235, 216, 0.04);
+  }
+
+  /* Imagen dentro del canvas */
+  .lightbox-premium-img {
+    display: block;
+  }
+  
+  .lightbox-premium-img.img-contain {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+  
+  .lightbox-premium-img.img-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+  
+  .lightbox-premium-img.img-ornamental {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Navegación */
+  .lightbox-premium-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(13, 19, 33, 0.5);
+    border: 1px solid rgba(240, 235, 216, 0.1);
+    color: #f0ebd8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    opacity: 0.5;
+    z-index: 1003;
+    backdrop-filter: blur(4px);
+  }
+
+  .lightbox-premium-nav:hover:not(:disabled) {
+    opacity: 1;
+    background: rgba(13, 19, 33, 0.8);
+    border-color: rgba(240, 235, 216, 0.25);
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  .lightbox-premium-nav:disabled {
+    opacity: 0;
+    cursor: default;
+    visibility: hidden;
+  }
+
+  .lightbox-premium-prev {
+    left: 32px;
+  }
+
+  .lightbox-premium-next {
+    right: 32px;
+  }
+
+  /* Caption */
+  .lightbox-premium-caption {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 18px;
+    background: rgba(13, 19, 33, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(240, 235, 216, 0.06);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10px;
+    font-weight: 300;
+    color: #a8b8cc;
+    letter-spacing: 0.06em;
+    z-index: 1002;
+    white-space: nowrap;
+    max-width: 80vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 1200px) {
+    .project-layout {
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .project-gallery {
+      flex: none;
+      height: auto;
+      padding: 80px 30px 30px 30px;
+    }
+    .project-info {
+      flex: none;
+      height: auto;
+      padding: 0 30px 60px 30px;
+    }
+    .info-title {
+      font-size: 32px;
+    }
+    .info-card {
+      padding: 40px 32px;
+    }
+    .lightbox-premium-main {
+      padding: 60px 80px;
+    }
+    .lightbox-premium-canvas.canvas-cinematic {
+      min-width: 75vw;
+    }
+    .lightbox-premium-canvas.canvas-ornamental {
+      min-width: 55vw;
+      max-width: 80vw;
+    }
+    .lightbox-premium-canvas.canvas-asset {
+      min-width: 50vw;
+      max-width: 70vw;
+    }
+  }
+
   @media (max-width: 768px) {
-    .immersive-header { padding: 0 20px; height: 50px; }
-    .secondary-images-grid { grid-template-columns: 1fr !important; }
-    .project-title { font-size: 28px !important; }
-    .metadata-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 20px 16px !important; padding: 20px 0 !important; }
-    .landscape-layout { padding: 70px 20px 40px !important; }
-    .info-content { padding: 32px 24px !important; border-radius: 20px !important; }
-    .info-content::before { left: 24px; right: 24px; }
-    .project-description { max-width: 100% !important; margin-bottom: 28px !important; }
-    .tags-container { gap: 6px !important; }
-    .tag { padding: 4px 12px !important; font-size: 8px !important; }
-    .lightbox-image-canvas { max-width: 90vw; max-height: 70vh; padding: 16px; border-radius: 8px; }
-    .lightbox-nav-button { width: 40px; height: 40px; margin: 0 8px; }
-    .lightbox-prev-button { left: 4px; }
-    .lightbox-next-button { right: 4px; }
-    .lightbox-header { height: 56px; padding: 0 16px; }
-    .lightbox-counter { font-size: 10px; padding: 4px 10px; }
-    .lightbox-close-button { width: 36px; height: 36px; }
-    .lightbox-caption { bottom: 20px; max-width: 80vw; padding: 6px 16px; }
-    .lightbox-caption-text { font-size: 10px; }
-    .video-wrapper { width: min(480px, 90%) !important; min-height: 300px !important; border-radius: 16px !important; }
-    .video-player { max-height: 360px !important; padding: 20px !important; }
-    .asset-showcase-label { font-size: 8px !important; letter-spacing: 0.18em !important; }
-    .asset-showcase-line { width: 32px !important; }
+    .project-close-btn {
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+    }
+    .project-gallery {
+      padding: 70px 20px 20px 20px;
+    }
+    .project-info {
+      padding: 0 20px 40px 20px;
+    }
+    .gallery-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .info-title {
+      font-size: 28px;
+    }
+    .info-card {
+      padding: 32px 24px;
+      border-radius: 24px;
+    }
+    .metadata-row {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .lightbox-premium-main {
+      padding: 40px 50px;
+    }
+    .lightbox-premium-canvas.canvas-contain {
+      padding: 20px;
+      max-width: 88vw;
+      max-height: 70vh;
+    }
+    .lightbox-premium-canvas.canvas-cover {
+      min-width: 70vw;
+      max-width: 90vw;
+      min-height: 40vh;
+    }
+    .lightbox-premium-canvas.canvas-cinematic {
+      min-width: 85vw;
+    }
+    .lightbox-premium-canvas.canvas-ornamental {
+      min-width: 70vw;
+      max-width: 85vw;
+      padding: 20px;
+    }
+    .lightbox-premium-canvas.canvas-asset {
+      min-width: 65vw;
+      max-width: 80vw;
+      padding: 24px;
+    }
+    .lightbox-premium-nav {
+      width: 38px;
+      height: 38px;
+    }
+    .lightbox-premium-prev {
+      left: 16px;
+    }
+    .lightbox-premium-next {
+      right: 16px;
+    }
+    .lightbox-premium-caption {
+      white-space: normal;
+      text-align: center;
+      max-width: 85vw;
+      font-size: 9px;
+      bottom: 20px;
+      padding: 5px 14px;
+    }
+    .lightbox-premium-header {
+      padding: 18px 24px;
+    }
   }
+
   @media (max-width: 480px) {
-    .lightbox-image-canvas { max-width: 94vw; max-height: 66vh; padding: 12px; }
-    .lightbox-nav-button { width: 36px; height: 36px; margin: 0 4px; }
-    .lightbox-prev-button { left: 2px; }
-    .lightbox-next-button { right: 2px; }
-    .lightbox-header { height: 50px; padding: 0 12px; }
-    .lightbox-close-button { width: 32px; height: 32px; }
-    .lightbox-caption { bottom: 16px; max-width: 88vw; }
-    .project-title { font-size: 24px !important; }
-    .info-content { padding: 28px 20px !important; border-radius: 18px !important; }
-    .info-content::before { left: 20px; right: 20px; }
-    .metadata-grid { grid-template-columns: 1fr 1fr !important; gap: 16px 12px !important; }
-    .metadata-value { font-size: 12px !important; }
-    .video-wrapper { width: 92% !important; min-height: 260px !important; border-radius: 14px !important; }
-    .video-player { max-height: 300px !important; padding: 16px !important; }
-    .asset-showcase-header { top: 6px !important; }
+    .info-title {
+      font-size: 24px;
+    }
+    .info-card {
+      padding: 28px 20px;
+      border-radius: 20px;
+    }
+    .info-description {
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .field-value {
+      font-size: 11px;
+    }
+    .hero-contain-mode {
+      background: #0a0e16;
+    }
+    .grid-contain-mode {
+      background: #0a0e16;
+    }
+    .lightbox-premium-main {
+      padding: 30px 30px;
+    }
+    .lightbox-premium-canvas.canvas-contain {
+      padding: 16px;
+      max-width: 92vw;
+      max-height: 65vh;
+    }
+    .lightbox-premium-canvas.canvas-cinematic {
+      min-width: 92vw;
+    }
+    .lightbox-premium-canvas.canvas-ornamental {
+      min-width: 85vw;
+      max-width: 92vw;
+      padding: 16px;
+    }
+    .lightbox-premium-canvas.canvas-asset {
+      min-width: 80vw;
+      max-width: 90vw;
+      padding: 20px;
+    }
+    .lightbox-premium-nav {
+      width: 34px;
+      height: 34px;
+    }
+    .lightbox-premium-prev {
+      left: 8px;
+    }
+    .lightbox-premium-next {
+      right: 8px;
+    }
+    .lightbox-premium-close {
+      width: 34px;
+      height: 34px;
+    }
+    .lightbox-premium-counter {
+      font-size: 9px;
+      padding: 3px 10px;
+    }
   }
 `;
+
 document.head.appendChild(styleSheet);
